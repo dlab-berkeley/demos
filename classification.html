@@ -431,10 +431,10 @@ function classify() {
   const rect = canvas.getBoundingClientRect();
   const width = rect.width;
   const height = rect.height;
-  const resolution = 8;
+  const resolution = 10;
 
-  // Create image data for decision boundary
-  const imageData = ctx.createImageData(width, height);
+  // Clear and draw decision boundary using fillRect (respects canvas scaling)
+  ctx.clearRect(0, 0, width, height);
 
   for (let x = 0; x < width; x += resolution) {
     for (let y = 0; y < height; y += resolution) {
@@ -448,22 +448,10 @@ function classify() {
         predictedClass = quadraticPredict(x, y);
       }
 
-      const color = predictedClass === 'A' ? [13, 110, 253, 40] : [220, 53, 69, 40];
-
-      // Fill resolution x resolution block
-      for (let dx = 0; dx < resolution && x + dx < width; dx++) {
-        for (let dy = 0; dy < resolution && y + dy < height; dy++) {
-          const idx = ((y + dy) * width + (x + dx)) * 4;
-          imageData.data[idx] = color[0];
-          imageData.data[idx + 1] = color[1];
-          imageData.data[idx + 2] = color[2];
-          imageData.data[idx + 3] = color[3];
-        }
-      }
+      ctx.fillStyle = predictedClass === 'A' ? 'rgba(13, 110, 253, 0.15)' : 'rgba(220, 53, 69, 0.15)';
+      ctx.fillRect(x, y, resolution, resolution);
     }
   }
-
-  ctx.putImageData(imageData, 0, 0);
 
   // Redraw points on top
   points.forEach(p => {
