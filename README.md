@@ -15,6 +15,9 @@ This repository contains interactive browser-based demonstrations for teaching c
 - **TF-IDF Game** - Interactive word detective mystery game
 - **Word Embeddings** - How computers learn word meanings through context
 - **Transformer Attention** - Understanding attention mechanisms in AI models
+- **ML Classification** - How algorithms learn decision boundaries to categorize data
+- **Causal Inference** - Why correlation doesn't imply causation
+- **Regular Expressions** - Interactive pattern matching for text
 
 ## Usage
 

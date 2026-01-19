@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>D-Lab - Machine Learning Classification Demo</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f8f9fa;
+    --muted:#6c757d;
+    --text:#212529;
+    --blue:#0d6efd;
+    --indigo:#6610f2;
+    --emerald:#198754;
+    --orange:#fd7e14;
+    --border:#dee2e6;
+    --red:#dc3545;
+    --purple:#6f42c1;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text); line-height: 1.5;
+  }
+  .wrap{max-width:1200px;margin:32px auto;padding:0 20px}
+  .course-header{text-align:center;margin-bottom:20px;padding:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)}
+  .course-logo{width:180px;height:auto;margin-bottom:8px}
+  h1{font-size:32px;margin:0 0 12px; text-align: center;}
+  p.lead{color:var(--muted);margin:0 0 24px; font-size: 18px; text-align: center;}
+
+  .intro{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px;
+    margin-bottom: 24px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .intro h2{margin:0 0 12px; color:var(--blue);}
+  .intro p{margin:12px 0; font-size: 16px;}
+
+  .demo-container{
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .demo-container { grid-template-columns: 1fr; }
+  }
+
+  .canvas-container{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  #mlCanvas{
+    width: 100%;
+    height: 500px;
+    background: white;
+    border-radius: 8px;
+    cursor: crosshair;
+    border: 2px solid var(--border);
+  }
+
+  .controls{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .control-section{
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .control-section:last-child{
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .control-section h3{
+    margin: 0 0 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .class-buttons{
+    display: flex;
+    gap: 8px;
+  }
+
+  .class-btn{
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .class-btn.class-a{ color: var(--blue); }
+  .class-btn.class-b{ color: var(--red); }
+  .class-btn.active{
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .class-btn.class-a.active{ background: var(--blue); color: white; border-color: var(--blue); }
+  .class-btn.class-b.active{ background: var(--red); color: white; border-color: var(--red); }
+
+  .algorithm-buttons{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .algo-btn{
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .algo-btn:hover{ background: var(--panel); }
+  .algo-btn.active{
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+  .algo-btn .algo-name{ font-weight: 600; display: block; }
+  .algo-btn .algo-desc{ font-size: 12px; opacity: 0.8; }
+
+  .slider-container{
+    margin-top: 12px;
+  }
+  .slider-container label{
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .slider-container input[type="range"]{
+    width: 100%;
+  }
+
+  .action-btn{
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .action-btn.primary{
+    background: var(--blue);
+    color: white;
+  }
+  .action-btn.secondary{
+    background: var(--orange);
+    color: white;
+  }
+  .action-btn.danger{
+    background: white;
+    color: var(--red);
+    border: 1px solid var(--red);
+  }
+  .action-btn:hover{ opacity: 0.9; transform: translateY(-1px); }
+
+  .stats{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .stat-box{
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .stat-value{ font-size: 24px; font-weight: 700; color: var(--blue); }
+  .stat-label{ font-size: 12px; color: var(--muted); }
+
+  .explanation{
+    background: rgba(13,110,253,.08);
+    padding: 16px;
+    border-radius: 12px;
+    border-left: 4px solid var(--blue);
+    margin-top: 24px;
+  }
+  .explanation h3{ margin: 0 0 8px; color: var(--blue); }
+  .explanation p{ margin: 8px 0; font-size: 14px; }
+
+  .concept-cards{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .concept-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .concept-card h4{ margin: 0 0 8px; color: var(--indigo); }
+  .concept-card p{ margin: 0; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="course-header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="course-logo">
+    </div>
+    <h1>Machine Learning Classification</h1>
+    <p class="lead">See how algorithms learn to separate data into categories</p>
+
+    <div class="intro">
+      <h2>What is Classification?</h2>
+      <p><strong>Classification</strong> is a type of machine learning where an algorithm learns to assign labels to data points. Given examples of different categories (like "spam" vs "not spam"), the algorithm finds patterns to classify new, unseen data.</p>
+      <p>In this demo, you'll create data points of two classes and watch different algorithms try to draw <strong>decision boundaries</strong> between them.</p>
+    </div>
+
+    <div class="demo-container">
+      <div class="canvas-container">
+        <canvas id="mlCanvas"></canvas>
+        <div class="explanation" id="algoExplanation">
+          <h3>K-Nearest Neighbors (KNN)</h3>
+          <p>KNN classifies a point based on the <strong>majority vote</strong> of its K nearest neighbors. It doesn't learn a boundary—it memorizes all training data and looks up neighbors at prediction time.</p>
+          <p><strong>Try it:</strong> Adjust K to see how it affects the decision boundary. Low K = complex boundary, High K = smoother boundary.</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-section">
+          <h3>Select Class to Add</h3>
+          <div class="class-buttons">
+            <button class="class-btn class-a active" onclick="setClass('A')">● Class A</button>
+            <button class="class-btn class-b" onclick="setClass('B')">● Class B</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>Algorithm</h3>
+          <div class="algorithm-buttons">
+            <button class="algo-btn active" onclick="setAlgorithm('knn')">
+              <span class="algo-name">K-Nearest Neighbors</span>
+              <span class="algo-desc">Vote by nearest neighbors</span>
+            </button>
+            <button class="algo-btn" onclick="setAlgorithm('linear')">
+              <span class="algo-name">Linear Classifier</span>
+              <span class="algo-desc">Straight line boundary</span>
+            </button>
+            <button class="algo-btn" onclick="setAlgorithm('quadratic')">
+              <span class="algo-name">Quadratic Classifier</span>
+              <span class="algo-desc">Curved boundary</span>
+            </button>
+          </div>
+
+          <div class="slider-container" id="kSlider">
+            <label>
+              <span>K neighbors:</span>
+              <span id="kValue">3</span>
+            </label>
+            <input type="range" min="1" max="15" value="3" oninput="updateK(this.value)">
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>Actions</h3>
+          <button class="action-btn primary" onclick="classify()">Draw Decision Boundary</button>
+          <button class="action-btn secondary" onclick="addRandomPoints()">Add Random Points</button>
+          <button class="action-btn danger" onclick="clearCanvas()">Clear All</button>
+        </div>
+
+        <div class="control-section">
+          <h3>Data Points</h3>
+          <div class="stats">
+            <div class="stat-box">
+              <div class="stat-value" id="countA" style="color: var(--blue)">0</div>
+              <div class="stat-label">Class A</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="countB" style="color: var(--red)">0</div>
+              <div class="stat-label">Class B</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="concept-cards">
+      <div class="concept-card">
+        <h4>Decision Boundary</h4>
+        <p>The line (or curve) that separates different classes. Points on one side get labeled Class A, points on the other side get Class B.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Overfitting</h4>
+        <p>When a model is too complex and fits the training data perfectly but fails on new data. Low K in KNN can cause overfitting.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Underfitting</h4>
+        <p>When a model is too simple to capture the pattern. A linear classifier underfits if the true boundary is curved.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Bias-Variance Tradeoff</h4>
+        <p>Simple models have high bias (assumptions), complex models have high variance (sensitive to data). Finding balance is key.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('mlCanvas');
+const ctx = canvas.getContext('2d');
+
+let points = [];
+let currentClass = 'A';
+let currentAlgorithm = 'knn';
+let kValue = 3;
+
+// High DPI canvas setup
+function setupCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+}
+
+setupCanvas();
+window.addEventListener('resize', () => {
+  setupCanvas();
+  redraw();
+});
+
+// Add point on click
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  points.push({ x, y, class: currentClass });
+  updateStats();
+  redraw();
+});
+
+function setClass(cls) {
+  currentClass = cls;
+  document.querySelectorAll('.class-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.class-${cls.toLowerCase()}`).classList.add('active');
+}
+
+function setAlgorithm(algo) {
+  currentAlgorithm = algo;
+  document.querySelectorAll('.algo-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.closest('.algo-btn').classList.add('active');
+
+  // Show/hide K slider
+  document.getElementById('kSlider').style.display = algo === 'knn' ? 'block' : 'none';
+
+  // Update explanation
+  const explanations = {
+    knn: {
+      title: 'K-Nearest Neighbors (KNN)',
+      text: `KNN classifies a point based on the <strong>majority vote</strong> of its K nearest neighbors. It doesn't learn a boundary—it memorizes all training data and looks up neighbors at prediction time.`,
+      tip: `<strong>Try it:</strong> Adjust K to see how it affects the decision boundary. Low K = complex boundary, High K = smoother boundary.`
+    },
+    linear: {
+      title: 'Linear Classifier',
+      text: `A linear classifier finds the best <strong>straight line</strong> (or hyperplane in higher dimensions) to separate classes. It's simple and fast but can only model linear relationships.`,
+      tip: `<strong>Try it:</strong> Create a curved pattern of points. Notice how the linear classifier can't capture it—this is underfitting.`
+    },
+    quadratic: {
+      title: 'Quadratic Classifier',
+      text: `A quadratic classifier uses a <strong>curved boundary</strong> (parabola, ellipse, or hyperbola) to separate classes. It can model more complex relationships than linear classifiers.`,
+      tip: `<strong>Try it:</strong> Create clusters in corners. The quadratic boundary can curve around them better than a straight line.`
+    }
+  };
+
+  const exp = explanations[algo];
+  document.getElementById('algoExplanation').innerHTML = `
+    <h3>${exp.title}</h3>
+    <p>${exp.text}</p>
+    <p>${exp.tip}</p>
+  `;
+
+  redraw();
+}
+
+function updateK(value) {
+  kValue = parseInt(value);
+  document.getElementById('kValue').textContent = value;
+  if (points.length >= 2) classify();
+}
+
+function updateStats() {
+  document.getElementById('countA').textContent = points.filter(p => p.class === 'A').length;
+  document.getElementById('countB').textContent = points.filter(p => p.class === 'B').length;
+}
+
+function redraw() {
+  const rect = canvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+
+  // Draw points
+  points.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = p.class === 'A' ? '#0d6efd' : '#dc3545';
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+function classify() {
+  if (points.length < 2) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+  const resolution = 8;
+
+  // Create image data for decision boundary
+  const imageData = ctx.createImageData(width, height);
+
+  for (let x = 0; x < width; x += resolution) {
+    for (let y = 0; y < height; y += resolution) {
+      let predictedClass;
+
+      if (currentAlgorithm === 'knn') {
+        predictedClass = knnPredict(x, y);
+      } else if (currentAlgorithm === 'linear') {
+        predictedClass = linearPredict(x, y);
+      } else {
+        predictedClass = quadraticPredict(x, y);
+      }
+
+      const color = predictedClass === 'A' ? [13, 110, 253, 40] : [220, 53, 69, 40];
+
+      // Fill resolution x resolution block
+      for (let dx = 0; dx < resolution && x + dx < width; dx++) {
+        for (let dy = 0; dy < resolution && y + dy < height; dy++) {
+          const idx = ((y + dy) * width + (x + dx)) * 4;
+          imageData.data[idx] = color[0];
+          imageData.data[idx + 1] = color[1];
+          imageData.data[idx + 2] = color[2];
+          imageData.data[idx + 3] = color[3];
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  // Redraw points on top
+  points.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = p.class === 'A' ? '#0d6efd' : '#dc3545';
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+function knnPredict(x, y) {
+  // Calculate distances to all points
+  const distances = points.map(p => ({
+    class: p.class,
+    dist: Math.sqrt((p.x - x) ** 2 + (p.y - y) ** 2)
+  }));
+
+  // Sort by distance and take K nearest
+  distances.sort((a, b) => a.dist - b.dist);
+  const kNearest = distances.slice(0, kValue);
+
+  // Majority vote
+  const countA = kNearest.filter(p => p.class === 'A').length;
+  const countB = kNearest.filter(p => p.class === 'B').length;
+
+  return countA >= countB ? 'A' : 'B';
+}
+
+function linearPredict(x, y) {
+  // Simple linear classifier using centroid difference
+  const pointsA = points.filter(p => p.class === 'A');
+  const pointsB = points.filter(p => p.class === 'B');
+
+  if (pointsA.length === 0) return 'B';
+  if (pointsB.length === 0) return 'A';
+
+  const centroidA = {
+    x: pointsA.reduce((s, p) => s + p.x, 0) / pointsA.length,
+    y: pointsA.reduce((s, p) => s + p.y, 0) / pointsA.length
+  };
+  const centroidB = {
+    x: pointsB.reduce((s, p) => s + p.x, 0) / pointsB.length,
+    y: pointsB.reduce((s, p) => s + p.y, 0) / pointsB.length
+  };
+
+  // Distance to each centroid
+  const distA = Math.sqrt((x - centroidA.x) ** 2 + (y - centroidA.y) ** 2);
+  const distB = Math.sqrt((x - centroidB.x) ** 2 + (y - centroidB.y) ** 2);
+
+  return distA <= distB ? 'A' : 'B';
+}
+
+function quadraticPredict(x, y) {
+  // Quadratic classifier using weighted distance with variance
+  const pointsA = points.filter(p => p.class === 'A');
+  const pointsB = points.filter(p => p.class === 'B');
+
+  if (pointsA.length === 0) return 'B';
+  if (pointsB.length === 0) return 'A';
+
+  function classScore(pts, px, py) {
+    const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+    const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+    const varX = pts.reduce((s, p) => s + (p.x - cx) ** 2, 0) / pts.length + 1;
+    const varY = pts.reduce((s, p) => s + (p.y - cy) ** 2, 0) / pts.length + 1;
+
+    return ((px - cx) ** 2) / varX + ((py - cy) ** 2) / varY;
+  }
+
+  const scoreA = classScore(pointsA, x, y);
+  const scoreB = classScore(pointsB, x, y);
+
+  return scoreA <= scoreB ? 'A' : 'B';
+}
+
+function addRandomPoints() {
+  const rect = canvas.getBoundingClientRect();
+  const padding = 50;
+
+  for (let i = 0; i < 10; i++) {
+    points.push({
+      x: padding + Math.random() * (rect.width - 2 * padding),
+      y: padding + Math.random() * (rect.height / 2 - padding),
+      class: 'A'
+    });
+    points.push({
+      x: padding + Math.random() * (rect.width - 2 * padding),
+      y: rect.height / 2 + Math.random() * (rect.height / 2 - padding),
+      class: 'B'
+    });
+  }
+
+  updateStats();
+  redraw();
+}
+
+function clearCanvas() {
+  points = [];
+  updateStats();
+  redraw();
+}
+
+// Initial draw
+redraw();
+</script>
+
+<footer class="dlab-cta">
+  <div class="cta-content">
+    <div class="cta-section">
+      <h3>Want to go deeper?</h3>
+      <p>Master classification in our <a href="https://github.com/dlab-berkeley/Python-Machine-Learning" target="_blank">Python Machine Learning</a> workshop.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Need help with your research?</h3>
+      <p>D-Lab consultants can help you build ML models for your project. <a href="https://dlab.berkeley.edu/consulting" target="_blank">Request a consultation</a>.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Stay updated</h3>
+      <p>Get notified about new workshops and resources. <a href="https://dlab.berkeley.edu/newsletter" target="_blank">Subscribe to our newsletter</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+.dlab-cta {
+  margin-top: 48px;
+  padding: 32px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+.cta-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+.cta-section h3 {
+  margin: 0 0 8px;
+  font-size: 1.1em;
+  color: var(--text);
+}
+.cta-section p {
+  margin: 0;
+  font-size: 0.95em;
+  color: var(--muted);
+}
+.cta-section a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.cta-section a:hover {
+  text-decoration: underline;
+}
+</style>
+</body>
+</html>

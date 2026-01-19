@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>D-Lab - Causal Inference Demo</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f8f9fa;
+    --muted:#6c757d;
+    --text:#212529;
+    --blue:#0d6efd;
+    --indigo:#6610f2;
+    --emerald:#198754;
+    --orange:#fd7e14;
+    --border:#dee2e6;
+    --red:#dc3545;
+    --purple:#6f42c1;
+    --yellow:#ffc107;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text); line-height: 1.5;
+  }
+  .wrap{max-width:1200px;margin:32px auto;padding:0 20px}
+  .course-header{text-align:center;margin-bottom:20px;padding:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)}
+  .course-logo{width:180px;height:auto;margin-bottom:8px}
+  h1{font-size:32px;margin:0 0 12px; text-align: center;}
+  p.lead{color:var(--muted);margin:0 0 24px; font-size: 18px; text-align: center;}
+
+  .intro{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px;
+    margin-bottom: 24px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .intro h2{margin:0 0 12px; color:var(--blue);}
+  .intro p{margin:12px 0; font-size: 16px;}
+
+  .stage{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .stage h2{
+    margin: 0 0 16px;
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .stage-num{
+    background: var(--blue);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .correlation-demo{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 20px 0;
+  }
+  @media (max-width: 768px) {
+    .correlation-demo { grid-template-columns: 1fr; }
+  }
+
+  .chart-container{
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .chart-container h4{
+    margin: 0 0 16px;
+    text-align: center;
+    color: var(--text);
+  }
+
+  .scatter-plot{
+    width: 100%;
+    height: 250px;
+    position: relative;
+    background: linear-gradient(to right, #f8f9fa 1px, transparent 1px),
+                linear-gradient(to bottom, #f8f9fa 1px, transparent 1px);
+    background-size: 25px 25px;
+    border-left: 2px solid var(--text);
+    border-bottom: 2px solid var(--text);
+  }
+  .scatter-dot{
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s;
+  }
+  .axis-label{
+    position: absolute;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .x-label{ bottom: -25px; left: 50%; transform: translateX(-50%); }
+  .y-label{ left: -40px; top: 50%; transform: rotate(-90deg) translateX(-50%); transform-origin: left; }
+
+  .correlation-value{
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 16px;
+  }
+  .correlation-value.positive{ color: var(--emerald); }
+  .correlation-value.negative{ color: var(--red); }
+
+  .reveal-btn{
+    display: block;
+    margin: 20px auto;
+    padding: 16px 32px;
+    background: var(--orange);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reveal-btn:hover{ transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+  .hidden-section{
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  .hidden-section.visible{ display: block; }
+  @keyframes fadeIn{
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .confounder-diagram{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+  }
+  .diagram-box{
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .diagram-box.cause{ background: rgba(13,110,253,0.1); border: 2px solid var(--blue); color: var(--blue); }
+  .diagram-box.effect{ background: rgba(25,135,84,0.1); border: 2px solid var(--emerald); color: var(--emerald); }
+  .diagram-box.confounder{ background: rgba(220,53,69,0.1); border: 2px solid var(--red); color: var(--red); }
+  .diagram-arrow{
+    font-size: 24px;
+    color: var(--muted);
+  }
+
+  .example-cards{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .example-card{
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .example-card:hover{
+    border-color: var(--blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .example-card.active{
+    border-color: var(--blue);
+    background: rgba(13,110,253,0.05);
+  }
+  .example-card h4{ margin: 0 0 8px; color: var(--indigo); }
+  .example-card p{ margin: 0; font-size: 14px; color: var(--muted); }
+  .example-card .correlation{ font-weight: 700; color: var(--emerald); }
+
+  .simpson-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  .simpson-table th, .simpson-table td{
+    padding: 12px 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .simpson-table th{
+    background: var(--panel);
+    font-weight: 600;
+  }
+  .simpson-table .highlight{
+    background: rgba(255,193,7,0.2);
+    font-weight: 700;
+  }
+
+  .warning-box{
+    background: rgba(220,53,69,0.1);
+    border: 1px solid var(--red);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  .warning-box h4{
+    margin: 0 0 8px;
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .insight-box{
+    background: rgba(25,135,84,0.1);
+    border: 1px solid var(--emerald);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  .insight-box h4{
+    margin: 0 0 8px;
+    color: var(--emerald);
+  }
+
+  .toggle-container{
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .toggle-btn{
+    padding: 10px 20px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .toggle-btn.active{
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="course-header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="course-logo">
+    </div>
+    <h1>Correlation vs. Causation</h1>
+    <p class="lead">Why "X is correlated with Y" doesn't mean "X causes Y"</p>
+
+    <div class="intro">
+      <h2>The Most Dangerous Mistake in Data Analysis</h2>
+      <p>When two variables move together, it's tempting to conclude that one causes the other. But <strong>correlation does not imply causation</strong>. This demo will show you why—and how confounding variables can create misleading patterns.</p>
+    </div>
+
+    <!-- Stage 1: Spurious Correlations -->
+    <div class="stage">
+      <h2><span class="stage-num">1</span> Spurious Correlations</h2>
+      <p>These correlations are real—but the causal relationship is absurd. Click each example to see the data.</p>
+
+      <div class="example-cards">
+        <div class="example-card active" onclick="showSpurious(0)">
+          <h4>🧀 Cheese & Engineering</h4>
+          <p>Per capita cheese consumption correlates with engineering doctorate awards</p>
+          <p class="correlation">r = 0.95</p>
+        </div>
+        <div class="example-card" onclick="showSpurious(1)">
+          <h4>🎬 Nicolas Cage & Drowning</h4>
+          <p>Nicolas Cage films correlate with swimming pool drownings</p>
+          <p class="correlation">r = 0.87</p>
+        </div>
+        <div class="example-card" onclick="showSpurious(2)">
+          <h4>🍦 Ice Cream & Crime</h4>
+          <p>Ice cream sales correlate with violent crime rates</p>
+          <p class="correlation">r = 0.79</p>
+        </div>
+      </div>
+
+      <div class="correlation-demo">
+        <div class="chart-container">
+          <h4 id="spuriousTitle">Cheese Consumption vs PhD Awards</h4>
+          <div class="scatter-plot" id="spuriousPlot">
+            <span class="axis-label x-label" id="xLabel">Cheese (lbs/person)</span>
+            <span class="axis-label y-label" id="yLabel">Engineering PhDs</span>
+          </div>
+          <div class="correlation-value positive" id="corrValue">r = 0.95</div>
+        </div>
+        <div class="chart-container">
+          <h4>Why This Happens</h4>
+          <p id="spuriousExplanation">Both cheese consumption and PhD awards have increased over time due to population growth, economic development, and changing preferences. <strong>Time</strong> is the lurking variable.</p>
+
+          <div class="warning-box">
+            <h4>⚠️ Warning</h4>
+            <p>With enough variables, you'll always find spurious correlations by chance. This is why we need theory, not just data mining.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 2: Confounding Variables -->
+    <div class="stage">
+      <h2><span class="stage-num">2</span> Confounding Variables</h2>
+      <p>A <strong>confounding variable</strong> affects both the supposed cause and the effect, creating a false appearance of causation.</p>
+
+      <div class="confounder-diagram">
+        <div class="diagram-box cause">Ice Cream Sales</div>
+        <div class="diagram-arrow">→</div>
+        <div class="diagram-box effect">Crime Rate</div>
+      </div>
+
+      <p style="text-align: center; color: var(--muted);">Does ice cream cause crime? Click to reveal the confounder.</p>
+
+      <button class="reveal-btn" onclick="revealConfounder()">Reveal the Hidden Variable</button>
+
+      <div class="hidden-section" id="confounderReveal">
+        <div class="confounder-diagram">
+          <div class="diagram-box cause">Ice Cream Sales</div>
+          <div class="diagram-arrow">←</div>
+          <div class="diagram-box confounder">🌡️ Hot Weather</div>
+          <div class="diagram-arrow">→</div>
+          <div class="diagram-box effect">Crime Rate</div>
+        </div>
+
+        <div class="insight-box">
+          <h4>The Real Story</h4>
+          <p><strong>Hot weather</strong> is the confounding variable. When it's hot, people buy more ice cream AND spend more time outside, increasing opportunities for crime. Ice cream doesn't cause crime—they share a common cause.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 3: Simpson's Paradox -->
+    <div class="stage">
+      <h2><span class="stage-num">3</span> Simpson's Paradox</h2>
+      <p>A trend that appears in groups can <strong>reverse</strong> when the groups are combined. This is one of the most counterintuitive phenomena in statistics.</p>
+
+      <div class="toggle-container">
+        <button class="toggle-btn active" onclick="showSimpson('combined')">Combined Data</button>
+        <button class="toggle-btn" onclick="showSimpson('separated')">Separated by Department</button>
+      </div>
+
+      <div id="simpsonCombined">
+        <h4 style="text-align:center;">UC Berkeley Admissions (1973)</h4>
+        <table class="simpson-table">
+          <thead>
+            <tr>
+              <th>Gender</th>
+              <th>Applicants</th>
+              <th>Admitted</th>
+              <th>Admission Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Men</td>
+              <td>8,442</td>
+              <td>3,738</td>
+              <td class="highlight">44%</td>
+            </tr>
+            <tr>
+              <td>Women</td>
+              <td>4,321</td>
+              <td>1,494</td>
+              <td class="highlight">35%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="warning-box">
+          <h4>⚠️ Apparent Bias</h4>
+          <p>Men appear to be admitted at a higher rate. Is the university discriminating against women?</p>
+        </div>
+      </div>
+
+      <div id="simpsonSeparated" class="hidden-section">
+        <h4 style="text-align:center;">Broken Down by Department</h4>
+        <table class="simpson-table">
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Men Applied</th>
+              <th>Men Admitted</th>
+              <th>Women Applied</th>
+              <th>Women Admitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A (Easy)</td>
+              <td>825</td>
+              <td class="highlight">62%</td>
+              <td>108</td>
+              <td class="highlight">82%</td>
+            </tr>
+            <tr>
+              <td>B (Easy)</td>
+              <td>560</td>
+              <td class="highlight">63%</td>
+              <td>25</td>
+              <td class="highlight">68%</td>
+            </tr>
+            <tr>
+              <td>C (Hard)</td>
+              <td>325</td>
+              <td class="highlight">37%</td>
+              <td>593</td>
+              <td class="highlight">34%</td>
+            </tr>
+            <tr>
+              <td>D (Hard)</td>
+              <td>417</td>
+              <td class="highlight">33%</td>
+              <td>375</td>
+              <td class="highlight">35%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="insight-box">
+          <h4>The Paradox Resolved</h4>
+          <p><strong>Within each department, women were admitted at equal or higher rates!</strong></p>
+          <p>The difference occurred because women applied more to competitive departments (like English) while men applied more to less competitive departments (like Engineering). Department choice was the confounding variable.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 4: How to Establish Causation -->
+    <div class="stage">
+      <h2><span class="stage-num">4</span> How to Establish Causation</h2>
+      <p>If correlation isn't enough, what is? Here are the gold standards:</p>
+
+      <div class="example-cards">
+        <div class="example-card">
+          <h4>🔬 Randomized Experiments</h4>
+          <p>Randomly assign subjects to treatment/control groups. Random assignment eliminates confounders by distributing them equally.</p>
+        </div>
+        <div class="example-card">
+          <h4>📊 Natural Experiments</h4>
+          <p>Find situations where an external event creates random-like variation. Example: policy changes at arbitrary geographic boundaries.</p>
+        </div>
+        <div class="example-card">
+          <h4>🎯 Instrumental Variables</h4>
+          <p>Find a variable that affects X but only affects Y through X. This isolates the causal effect.</p>
+        </div>
+        <div class="example-card">
+          <h4>📈 Difference-in-Differences</h4>
+          <p>Compare changes over time between treated and untreated groups, eliminating time-invariant confounders.</p>
+        </div>
+      </div>
+
+      <div class="insight-box" style="margin-top: 24px;">
+        <h4>Key Takeaway</h4>
+        <p>Observational data can show <strong>association</strong>. Establishing <strong>causation</strong> requires careful research design—ideally experiments, or clever quasi-experimental methods when experiments aren't possible.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Spurious correlations data
+const spuriousData = [
+  {
+    title: 'Cheese Consumption vs PhD Awards',
+    xLabel: 'Cheese (lbs/person)',
+    yLabel: 'Engineering PhDs',
+    correlation: 0.95,
+    explanation: 'Both cheese consumption and PhD awards have increased over time due to population growth, economic development, and changing preferences. <strong>Time</strong> is the lurking variable.',
+    data: [[30,500],[31,520],[31.5,550],[32,600],[32.5,650],[33,700],[33.5,780],[34,850],[34.5,920],[35,1000]]
+  },
+  {
+    title: 'Nicolas Cage Films vs Pool Drownings',
+    xLabel: 'Cage Films Released',
+    yLabel: 'Pool Drownings',
+    correlation: 0.87,
+    explanation: 'With millions of possible correlations to test, some will be strong by pure chance. Both variables happen to follow similar random patterns—there\'s no mechanism connecting them.',
+    data: [[2,80],[3,85],[2,78],[4,95],[3,88],[5,100],[2,75],[4,92],[3,82],[5,105]]
+  },
+  {
+    title: 'Ice Cream Sales vs Crime Rate',
+    xLabel: 'Ice Cream Sales ($M)',
+    yLabel: 'Violent Crimes',
+    correlation: 0.79,
+    explanation: '<strong>Hot weather</strong> is the confounding variable. Heat increases both ice cream sales and crime (more people outside, more irritability). The ice cream doesn\'t cause the crime!',
+    data: [[10,200],[15,250],[25,350],[35,450],[40,500],[45,520],[42,490],[30,380],[18,280],[12,220]]
+  }
+];
+
+let currentSpurious = 0;
+
+function showSpurious(index) {
+  currentSpurious = index;
+  const data = spuriousData[index];
+
+  // Update active card
+  document.querySelectorAll('.example-card').forEach((card, i) => {
+    card.classList.toggle('active', i === index);
+  });
+
+  // Update chart
+  document.getElementById('spuriousTitle').textContent = data.title;
+  document.getElementById('xLabel').textContent = data.xLabel;
+  document.getElementById('yLabel').textContent = data.yLabel;
+  document.getElementById('corrValue').textContent = `r = ${data.correlation.toFixed(2)}`;
+  document.getElementById('spuriousExplanation').innerHTML = data.explanation;
+
+  // Draw scatter plot
+  const plot = document.getElementById('spuriousPlot');
+  plot.querySelectorAll('.scatter-dot').forEach(dot => dot.remove());
+
+  const xMin = Math.min(...data.data.map(d => d[0]));
+  const xMax = Math.max(...data.data.map(d => d[0]));
+  const yMin = Math.min(...data.data.map(d => d[1]));
+  const yMax = Math.max(...data.data.map(d => d[1]));
+
+  data.data.forEach(([x, y]) => {
+    const dot = document.createElement('div');
+    dot.className = 'scatter-dot';
+    dot.style.left = `${10 + ((x - xMin) / (xMax - xMin)) * 80}%`;
+    dot.style.bottom = `${10 + ((y - yMin) / (yMax - yMin)) * 80}%`;
+    dot.style.background = `var(--blue)`;
+    plot.appendChild(dot);
+  });
+}
+
+function revealConfounder() {
+  document.getElementById('confounderReveal').classList.add('visible');
+  event.target.style.display = 'none';
+}
+
+function showSimpson(view) {
+  document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (view === 'combined') {
+    document.getElementById('simpsonCombined').style.display = 'block';
+    document.getElementById('simpsonSeparated').classList.remove('visible');
+  } else {
+    document.getElementById('simpsonCombined').style.display = 'none';
+    document.getElementById('simpsonSeparated').classList.add('visible');
+  }
+}
+
+// Initialize
+showSpurious(0);
+</script>
+
+<footer class="dlab-cta">
+  <div class="cta-content">
+    <div class="cta-section">
+      <h3>Want to go deeper?</h3>
+      <p>Learn causal inference methods in our <a href="https://github.com/dlab-berkeley/Computational-Social-Science-Training-Program" target="_blank">Computational Social Science Training Program</a>.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Need help with your research?</h3>
+      <p>D-Lab consultants can help you design causal studies. <a href="https://dlab.berkeley.edu/consulting" target="_blank">Request a consultation</a>.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Stay updated</h3>
+      <p>Get notified about new workshops and resources. <a href="https://dlab.berkeley.edu/newsletter" target="_blank">Subscribe to our newsletter</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+.dlab-cta {
+  margin-top: 48px;
+  padding: 32px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+.cta-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+.cta-section h3 {
+  margin: 0 0 8px;
+  font-size: 1.1em;
+  color: var(--text);
+}
+.cta-section p {
+  margin: 0;
+  font-size: 0.95em;
+  color: var(--muted);
+}
+.cta-section a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.cta-section a:hover {
+  text-decoration: underline;
+}
+</style>
+</body>
+</html>

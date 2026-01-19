@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>D-Lab - Regular Expressions Demo</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f8f9fa;
+    --muted:#6c757d;
+    --text:#212529;
+    --blue:#0d6efd;
+    --indigo:#6610f2;
+    --emerald:#198754;
+    --orange:#fd7e14;
+    --border:#dee2e6;
+    --red:#dc3545;
+    --purple:#6f42c1;
+    --yellow:#ffc107;
+    --cyan:#0dcaf0;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text); line-height: 1.5;
+  }
+  .wrap{max-width:1200px;margin:32px auto;padding:0 20px}
+  .course-header{text-align:center;margin-bottom:20px;padding:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)}
+  .course-logo{width:180px;height:auto;margin-bottom:8px}
+  h1{font-size:32px;margin:0 0 12px; text-align: center;}
+  p.lead{color:var(--muted);margin:0 0 24px; font-size: 18px; text-align: center;}
+
+  .intro{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px;
+    margin-bottom: 24px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .intro h2{margin:0 0 12px; color:var(--blue);}
+  .intro p{margin:12px 0; font-size: 16px;}
+
+  .playground{
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .playground { grid-template-columns: 1fr; }
+  }
+
+  .editor-section{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .regex-input-container{
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid var(--blue);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 16px;
+  }
+  .regex-slash{
+    font-family: monospace;
+    font-size: 20px;
+    color: var(--muted);
+    padding: 0 8px;
+  }
+  #regexInput{
+    flex: 1;
+    border: none;
+    font-family: monospace;
+    font-size: 18px;
+    padding: 12px 0;
+    outline: none;
+  }
+  .regex-flags{
+    display: flex;
+    gap: 4px;
+    padding-right: 8px;
+  }
+  .flag-btn{
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: white;
+    font-family: monospace;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .flag-btn.active{
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+  .flag-btn:hover{ background: var(--panel); }
+  .flag-btn.active:hover{ background: var(--blue); }
+
+  .test-text{
+    width: 100%;
+    min-height: 200px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    resize: vertical;
+  }
+
+  .results-container{
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    min-height: 200px;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .match{
+    background: rgba(255,193,7,0.4);
+    border-radius: 3px;
+    padding: 1px 2px;
+  }
+
+  .match-info{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--panel);
+    border-radius: 8px;
+  }
+  .match-count{
+    font-weight: 600;
+    color: var(--emerald);
+  }
+  .match-count.error{
+    color: var(--red);
+  }
+
+  .sidebar{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .cheatsheet{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .cheatsheet h3{
+    margin: 0 0 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .cheat-category{
+    margin-bottom: 16px;
+  }
+  .cheat-category:last-child{ margin-bottom: 0; }
+  .cheat-category h4{
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--indigo);
+  }
+
+  .cheat-items{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .cheat-item{
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .cheat-item:hover{
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+  .cheat-item code{
+    color: var(--purple);
+    font-weight: 600;
+  }
+  .cheat-item:hover code{ color: white; }
+
+  .examples-section{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .examples-section h3{
+    margin: 0 0 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .example-btn{
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .example-btn:last-child{ margin-bottom: 0; }
+  .example-btn:hover{
+    border-color: var(--blue);
+    transform: translateX(4px);
+  }
+  .example-btn .example-name{
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .example-btn .example-pattern{
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--purple);
+  }
+
+  .explanation-section{
+    background: rgba(13,110,253,.08);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 24px;
+    border-left: 4px solid var(--blue);
+  }
+  .explanation-section h3{
+    margin: 0 0 12px;
+    color: var(--blue);
+  }
+
+  .pattern-breakdown{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .pattern-part{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .pattern-part code{
+    font-size: 18px;
+    color: var(--purple);
+    font-weight: 600;
+  }
+  .pattern-part span{
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .concept-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .concept-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .concept-card h4{ margin: 0 0 8px; color: var(--indigo); }
+  .concept-card p{ margin: 0; font-size: 14px; color: var(--muted); }
+  .concept-card code{
+    background: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="course-header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="course-logo">
+    </div>
+    <h1>Regular Expressions</h1>
+    <p class="lead">Pattern matching for text—the Swiss Army knife of data cleaning</p>
+
+    <div class="intro">
+      <h2>What are Regular Expressions?</h2>
+      <p><strong>Regular expressions (regex)</strong> are patterns used to match character combinations in text. They're essential for finding, extracting, and replacing text patterns—from email addresses to phone numbers to complex data formats.</p>
+      <p>Type a pattern below and watch matches highlight in real time!</p>
+    </div>
+
+    <div class="playground">
+      <div class="editor-section">
+        <div class="regex-input-container">
+          <span class="regex-slash">/</span>
+          <input type="text" id="regexInput" placeholder="Type your regex pattern..." value="\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b">
+          <span class="regex-slash">/</span>
+          <div class="regex-flags">
+            <button class="flag-btn active" onclick="toggleFlag(this, 'g')" title="Global - find all matches">g</button>
+            <button class="flag-btn active" onclick="toggleFlag(this, 'i')" title="Case insensitive">i</button>
+            <button class="flag-btn" onclick="toggleFlag(this, 'm')" title="Multiline">m</button>
+          </div>
+        </div>
+
+        <label style="font-weight: 600; display: block; margin-bottom: 8px;">Test Text:</label>
+        <textarea class="test-text" id="testText">Contact us at support@dlab.berkeley.edu or info@example.com for help.
+
+Our phone numbers are (510) 555-1234 and 510-555-5678.
+
+Visit https://dlab.berkeley.edu or http://example.org for more info.
+
+Meeting dates: 2024-01-15, 2024-02-28, 2024-12-31
+
+Prices: $19.99, $149.00, $5.50
+
+Sample IDs: ABC-123, XYZ-789, TEST-001</textarea>
+
+        <label style="font-weight: 600; display: block; margin: 16px 0 8px;">Matches:</label>
+        <div class="results-container" id="results"></div>
+
+        <div class="match-info">
+          <span id="matchCount" class="match-count">0 matches found</span>
+          <span id="errorMsg" style="color: var(--red); display: none;"></span>
+        </div>
+
+        <div class="explanation-section">
+          <h3>Pattern Breakdown</h3>
+          <p id="patternExplanation">This pattern matches email addresses.</p>
+          <div class="pattern-breakdown" id="patternBreakdown"></div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="examples-section">
+          <h3>Try These Examples</h3>
+          <button class="example-btn" onclick="loadExample('email')">
+            <div class="example-name">Email Addresses</div>
+            <div class="example-pattern">\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b</div>
+          </button>
+          <button class="example-btn" onclick="loadExample('phone')">
+            <div class="example-name">Phone Numbers</div>
+            <div class="example-pattern">\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}</div>
+          </button>
+          <button class="example-btn" onclick="loadExample('url')">
+            <div class="example-name">URLs</div>
+            <div class="example-pattern">https?://[^\s]+</div>
+          </button>
+          <button class="example-btn" onclick="loadExample('date')">
+            <div class="example-name">Dates (YYYY-MM-DD)</div>
+            <div class="example-pattern">\d{4}-\d{2}-\d{2}</div>
+          </button>
+          <button class="example-btn" onclick="loadExample('price')">
+            <div class="example-name">Prices</div>
+            <div class="example-pattern">\$\d+\.\d{2}</div>
+          </button>
+          <button class="example-btn" onclick="loadExample('id')">
+            <div class="example-name">ID Codes</div>
+            <div class="example-pattern">[A-Z]{2,4}-\d{3}</div>
+          </button>
+        </div>
+
+        <div class="cheatsheet">
+          <h3>Quick Reference</h3>
+
+          <div class="cheat-category">
+            <h4>Character Classes</h4>
+            <div class="cheat-items">
+              <div class="cheat-item" onclick="insertPattern('\\\\d')"><code>\d</code> digit</div>
+              <div class="cheat-item" onclick="insertPattern('\\\\w')"><code>\w</code> word</div>
+              <div class="cheat-item" onclick="insertPattern('\\\\s')"><code>\s</code> space</div>
+              <div class="cheat-item" onclick="insertPattern('.')"><code>.</code> any</div>
+            </div>
+          </div>
+
+          <div class="cheat-category">
+            <h4>Quantifiers</h4>
+            <div class="cheat-items">
+              <div class="cheat-item" onclick="insertPattern('*')"><code>*</code> 0+</div>
+              <div class="cheat-item" onclick="insertPattern('+')"><code>+</code> 1+</div>
+              <div class="cheat-item" onclick="insertPattern('?')"><code>?</code> 0-1</div>
+              <div class="cheat-item" onclick="insertPattern('{3}')"><code>{n}</code> exact</div>
+            </div>
+          </div>
+
+          <div class="cheat-category">
+            <h4>Anchors</h4>
+            <div class="cheat-items">
+              <div class="cheat-item" onclick="insertPattern('^')"><code>^</code> start</div>
+              <div class="cheat-item" onclick="insertPattern('$')"><code>$</code> end</div>
+              <div class="cheat-item" onclick="insertPattern('\\\\b')"><code>\b</code> boundary</div>
+            </div>
+          </div>
+
+          <div class="cheat-category">
+            <h4>Groups</h4>
+            <div class="cheat-items">
+              <div class="cheat-item" onclick="insertPattern('()')"><code>()</code> capture</div>
+              <div class="cheat-item" onclick="insertPattern('[]')"><code>[]</code> set</div>
+              <div class="cheat-item" onclick="insertPattern('|')"><code>|</code> or</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h4>Greedy vs Lazy</h4>
+        <p>By default, quantifiers are greedy (match as much as possible). Add <code>?</code> after to make lazy: <code>.*?</code> matches as little as possible.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Escaping Special Characters</h4>
+        <p>Characters like <code>. * + ? [ ] ( ) { } | \ ^ $</code> have special meanings. Use <code>\</code> to match them literally: <code>\.</code> matches a period.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Character Sets</h4>
+        <p><code>[abc]</code> matches a, b, or c. <code>[a-z]</code> matches any lowercase letter. <code>[^abc]</code> matches anything except a, b, c.</p>
+      </div>
+      <div class="concept-card">
+        <h4>Capture Groups</h4>
+        <p>Parentheses <code>()</code> create groups you can reference later. In <code>(\d{3})-(\d{4})</code>, group 1 is area code, group 2 is number.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+const regexInput = document.getElementById('regexInput');
+const testText = document.getElementById('testText');
+const results = document.getElementById('results');
+const matchCount = document.getElementById('matchCount');
+const errorMsg = document.getElementById('errorMsg');
+
+let flags = { g: true, i: true, m: false };
+
+const examples = {
+  email: {
+    pattern: '\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b',
+    explanation: 'This pattern matches email addresses.',
+    breakdown: [
+      { code: '\\b', desc: 'word boundary' },
+      { code: '[A-Za-z0-9._%+-]+', desc: 'username' },
+      { code: '@', desc: 'at symbol' },
+      { code: '[A-Za-z0-9.-]+', desc: 'domain' },
+      { code: '\\.', desc: 'literal dot' },
+      { code: '[A-Za-z]{2,}', desc: 'TLD' },
+      { code: '\\b', desc: 'word boundary' }
+    ]
+  },
+  phone: {
+    pattern: '\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}',
+    explanation: 'Matches US phone numbers in various formats.',
+    breakdown: [
+      { code: '\\(?', desc: 'optional (' },
+      { code: '\\d{3}', desc: '3 digits' },
+      { code: '\\)?', desc: 'optional )' },
+      { code: '[-.\\s]?', desc: 'separator' },
+      { code: '\\d{3}', desc: '3 digits' },
+      { code: '[-.\\s]?', desc: 'separator' },
+      { code: '\\d{4}', desc: '4 digits' }
+    ]
+  },
+  url: {
+    pattern: 'https?://[^\\s]+',
+    explanation: 'Matches HTTP and HTTPS URLs.',
+    breakdown: [
+      { code: 'http', desc: 'literal http' },
+      { code: 's?', desc: 'optional s' },
+      { code: '://', desc: 'literal ://' },
+      { code: '[^\\s]+', desc: 'non-space chars' }
+    ]
+  },
+  date: {
+    pattern: '\\d{4}-\\d{2}-\\d{2}',
+    explanation: 'Matches dates in YYYY-MM-DD format.',
+    breakdown: [
+      { code: '\\d{4}', desc: 'year' },
+      { code: '-', desc: 'dash' },
+      { code: '\\d{2}', desc: 'month' },
+      { code: '-', desc: 'dash' },
+      { code: '\\d{2}', desc: 'day' }
+    ]
+  },
+  price: {
+    pattern: '\\$\\d+\\.\\d{2}',
+    explanation: 'Matches prices like $19.99.',
+    breakdown: [
+      { code: '\\$', desc: 'dollar sign' },
+      { code: '\\d+', desc: '1+ digits' },
+      { code: '\\.', desc: 'decimal' },
+      { code: '\\d{2}', desc: 'cents' }
+    ]
+  },
+  id: {
+    pattern: '[A-Z]{2,4}-\\d{3}',
+    explanation: 'Matches ID codes like ABC-123.',
+    breakdown: [
+      { code: '[A-Z]{2,4}', desc: '2-4 uppercase' },
+      { code: '-', desc: 'dash' },
+      { code: '\\d{3}', desc: '3 digits' }
+    ]
+  }
+};
+
+function getFlags() {
+  return Object.entries(flags).filter(([k, v]) => v).map(([k]) => k).join('');
+}
+
+function updateResults() {
+  const pattern = regexInput.value;
+  const text = testText.value;
+
+  if (!pattern) {
+    results.textContent = text;
+    matchCount.textContent = '0 matches found';
+    matchCount.className = 'match-count';
+    errorMsg.style.display = 'none';
+    return;
+  }
+
+  try {
+    const regex = new RegExp(pattern, getFlags());
+    const matches = text.match(regex) || [];
+
+    // Highlight matches
+    let highlighted = text;
+    if (flags.g) {
+      highlighted = text.replace(regex, match => `<span class="match">${match}</span>`);
+    } else if (matches.length > 0) {
+      highlighted = text.replace(regex, match => `<span class="match">${match}</span>`);
+    }
+
+    results.innerHTML = highlighted;
+    matchCount.textContent = `${matches.length} match${matches.length !== 1 ? 'es' : ''} found`;
+    matchCount.className = 'match-count';
+    errorMsg.style.display = 'none';
+
+  } catch (e) {
+    results.textContent = text;
+    matchCount.textContent = 'Invalid regex';
+    matchCount.className = 'match-count error';
+    errorMsg.textContent = e.message;
+    errorMsg.style.display = 'inline';
+  }
+}
+
+function toggleFlag(btn, flag) {
+  flags[flag] = !flags[flag];
+  btn.classList.toggle('active');
+  updateResults();
+}
+
+function loadExample(name) {
+  const example = examples[name];
+  regexInput.value = example.pattern;
+
+  document.getElementById('patternExplanation').textContent = example.explanation;
+
+  const breakdown = document.getElementById('patternBreakdown');
+  breakdown.innerHTML = example.breakdown.map(part =>
+    `<div class="pattern-part"><code>${part.code}</code><span>${part.desc}</span></div>`
+  ).join('');
+
+  updateResults();
+}
+
+function insertPattern(pattern) {
+  const input = regexInput;
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  const text = input.value;
+
+  input.value = text.substring(0, start) + pattern + text.substring(end);
+  input.focus();
+  input.setSelectionRange(start + pattern.length, start + pattern.length);
+  updateResults();
+}
+
+// Event listeners
+regexInput.addEventListener('input', updateResults);
+testText.addEventListener('input', updateResults);
+
+// Initialize
+loadExample('email');
+</script>
+
+<footer class="dlab-cta">
+  <div class="cta-content">
+    <div class="cta-section">
+      <h3>Want to go deeper?</h3>
+      <p>Master text processing in our <a href="https://github.com/dlab-berkeley/Python-Fundamentals" target="_blank">Python Fundamentals</a> and <a href="https://github.com/dlab-berkeley/Python-NLP-Fundamentals" target="_blank">NLP Fundamentals</a> workshops.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Need help with your research?</h3>
+      <p>D-Lab consultants can help you clean and process text data. <a href="https://dlab.berkeley.edu/consulting" target="_blank">Request a consultation</a>.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Stay updated</h3>
+      <p>Get notified about new workshops and resources. <a href="https://dlab.berkeley.edu/newsletter" target="_blank">Subscribe to our newsletter</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+.dlab-cta {
+  margin-top: 48px;
+  padding: 32px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+.cta-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+.cta-section h3 {
+  margin: 0 0 8px;
+  font-size: 1.1em;
+  color: var(--text);
+}
+.cta-section p {
+  margin: 0;
+  font-size: 0.95em;
+  color: var(--muted);
+}
+.cta-section a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.cta-section a:hover {
+  text-decoration: underline;
+}
+</style>
+</body>
+</html>
