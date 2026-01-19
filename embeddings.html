@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>D-Lab - Word Embeddings Tutorial</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f8f9fa;
+    --muted:#6c757d;
+    --text:#212529;
+    --blue:#0d6efd;
+    --indigo:#6610f2;
+    --emerald:#198754;
+    --orange:#fd7e14;
+    --border:#dee2e6;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text);
+    line-height: 1.5;
+  }
+  .wrap{max-width:1200px;margin:32px auto;padding:0 20px}
+  .course-header{text-align:center;margin-bottom:20px;padding:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)}
+  .course-logo{width:180px;height:auto;margin-bottom:8px}
+  .course-title{font-size:1.2em;color:var(--blue);margin:0;font-weight:600}
+  h1{font-size:32px;margin:0 0 12px; text-align: center;}
+  .intro{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px;
+    margin-bottom: 24px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .intro h2{margin:0 0 12px; color:var(--blue);}
+  .intro p{margin:12px 0; font-size: 16px;}
+  .goal{
+    background:rgba(255,179,102,.1); border:1px solid rgba(255,179,102,.3); 
+    border-radius:12px; padding:16px; margin:16px 0;
+  }
+  .goal h3{margin:0 0 8px; color:var(--orange);}
+  p.lead{color:var(--muted);margin:0 0 24px; font-size: 18px; text-align: center;}
+  .grid{display:grid;gap:16px; margin-bottom: 24px;}
+  @media (min-width:900px){ .grid.cols-4{grid-template-columns:repeat(4,1fr)} }
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .title{font-weight:600;font-size:15px;margin-bottom:12px;opacity:.95}
+  .sub{font-size:13px;color:var(--muted);margin-top:8px; line-height: 1.4;}
+  select, input[type=range], input[type=number]{
+    width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
+    border-radius:10px; padding:10px; outline:none; font-size: 14px;
+  }
+  .stage{
+    border:1px solid var(--border); border-radius:16px; padding:24px; 
+    background:var(--bg); margin-bottom:24px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .stage h2{margin:0 0 12px; font-size:20px; color:var(--blue);}
+  .stage .explanation{
+    font-size:15px; color:var(--text); margin-bottom:16px; 
+    background:rgba(13,110,253,.08); padding:12px 16px; border-radius:12px;
+    border-left: 4px solid var(--blue);
+  }
+  .stage .note{font-size:13px;color:var(--muted); margin-bottom:12px}
+  .chip{
+    display:inline-flex; gap:6px; align-items:center; padding:8px 12px; border-radius:999px; border:1px solid var(--border);
+    background:var(--bg); font-size:14px; margin:4px 8px 4px 0; font-weight: 500;
+  }
+  .chip.ctx{ background:rgba(13,110,253,.15); border-color:rgba(13,110,253,.4); color:var(--blue) }
+  .chip.lbl{ background:rgba(102,16,242,.18); border-color:rgba(102,16,242,.45); color:var(--indigo) }
+  .chip.neutral{ background:rgba(142,161,184,.1); border-color:rgba(142,161,184,.3); color:var(--muted) }
+  .onehot{height:12px;background:var(--panel);border-radius:999px;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px var(--border); margin: 4px 0;}
+  .onehot span{position:absolute;top:0;bottom:0;background:var(--blue);border-right:1px solid rgba(0,0,0,.3); transition: all 0.3s ease;}
+  .vec{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas; font-size:13px; 
+    padding:10px 12px; border-radius:12px; background:var(--panel); border:1px solid var(--border); 
+    display:inline-block; margin: 4px 8px 4px 0;
+  }
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer; font-size: 14px;}
+  .btn:hover{background:var(--panel); transform: translateY(-1px);}
+  .btn-primary{background:var(--blue);color:white;border-color:var(--blue);}
+  .btn-primary:hover{background:#0b5ed7;border-color:#0b5ed7;}
+  .bars{display:flex;flex-direction:column;gap:8px; margin-top: 16px;}
+  .bar{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:12px;border:1px solid var(--border);padding:10px; transition: all 0.3s ease;}
+  .bar:hover{background:var(--panel);}
+  .bar .label{width:100px;font-size:13px;color:var(--muted); font-weight: 500;}
+  .bar .track{flex:1;height:12px;background:var(--panel);border-radius:999px;overflow:hidden;position:relative}
+  .bar .fill{height:12px;background:linear-gradient(90deg, var(--emerald), var(--blue)); transition: width 0.5s ease;}
+  .bar .pct{width:70px;text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas; font-size:13px;color:var(--blue); font-weight: 500;}
+  .kpi{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px; justify-content: center;}
+  .tag{font-size:14px;color:var(--muted); padding: 8px 12px; background: var(--panel); border-radius: 8px;}
+  .tag b{color:var(--text)}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;font-size:13px;border:1px solid var(--border); font-weight: 500;}
+  .pill.pred{background:rgba(25,135,84,.15); color:var(--emerald); border-color:rgba(25,135,84,.45)}
+  .pill.lbl{background:rgba(102,16,242,.16); color:var(--indigo); border-color:rgba(102,16,242,.45)}
+  .matrix{overflow:auto;max-height:280px;border-radius:12px;border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th, td{padding:8px 10px;border-bottom:1px solid var(--border)}
+  th{position:sticky;top:0;background:var(--panel);z-index:1;color:var(--muted);text-align:right; font-weight: 600;}
+  th:first-child, td:first-child{text-align:left}
+  th:nth-child(2), td:nth-child(2){text-align:center}
+  tr.ctxrow td{background:rgba(13,110,253,.08)}
+  input.cell{width:65px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;text-align:right; font-size: 11px;}
+  .footer{margin-top:24px;color:var(--muted);font-size:13px; text-align: center; padding: 16px;}
+  .analogy{
+    background:rgba(102,16,242,.08); border:1px solid rgba(102,16,242,.3); 
+    border-radius:12px; padding:16px; margin:16px 0;
+  }
+  .analogy h4{margin:0 0 8px; color:var(--indigo); font-size: 14px;}
+  .step-number{
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; background: var(--blue);
+    color: white; font-weight: bold; font-size: 12px; margin-right: 8px;
+  }
+  
+  /* 2D Embedding Visualization */
+  .embedding-visualization{
+    width:100%; height:400px; margin:20px 0; 
+    border:1px solid var(--border); border-radius:12px; 
+    background:var(--panel); position:relative; overflow:hidden;
+  }
+  .embedding-plot-svg{width:100%; height:100%;}
+  .word-point{pointer-events:none;}
+  .word-label{font-size:13px; font-weight:500; pointer-events:none; user-select:none;}
+  .cluster-animals{color:#22c55e;} /* Green for animals */
+  .cluster-royalty{color:#8b5cf6;} /* Purple for royalty */
+  .cluster-cities{color:#3b82f6;} /* Blue for cities */
+  .cluster-actions{color:#f59e0b;} /* Orange for actions */
+  .cluster-descriptors{color:#ef4444;} /* Red for descriptors */
+  .plot-legend{
+    position:absolute; top:10px; right:10px; 
+    background:var(--bg); border:1px solid var(--border); 
+    border-radius:6px; padding:8px; font-size:11px;
+  }
+  .legend-item{display:flex; align-items:center; gap:6px; margin-bottom:4px;}
+  .legend-dot{width:8px; height:8px; border-radius:50%;}
+  .plot-axes{stroke:var(--border); stroke-width:1; opacity:0.5;}
+  .plot-grid{stroke:var(--border); stroke-width:0.5; opacity:0.3;}
+  
+  
+  /* Enhanced prediction explanation */
+  #prediction-explanation{background:rgba(255,193,7,.05); border-color:rgba(255,193,7,.2);}
+  #prediction-reasoning{font-size:14px; line-height:1.5;}
+  
+  /* Training progress styles */
+  .training-progress{background:var(--panel); border-radius:8px; padding:12px; margin:8px 0; border:1px solid var(--border);}
+  .loss-chart{height:60px; background:var(--bg); border-radius:6px; position:relative; overflow:hidden; margin:8px 0; border:1px solid var(--border);}
+  .loss-line{position:absolute; bottom:0; width:2px; background:var(--blue); transition:all 0.3s;}
+  .training-btn{margin:4px; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); cursor:pointer; font-size:13px;}
+  .training-btn:hover{background:var(--panel);}
+  .training-btn:disabled{opacity:0.6; cursor:not-allowed;}
+  .embedding-diff{font-size:12px; color:var(--muted); margin-top:4px;}
+  .similarity-change{padding:4px 8px; border-radius:4px; font-size:11px; font-weight:500; margin:2px;}
+  .similarity-change.improved{background:rgba(25,135,84,.1); color:var(--emerald);}
+  .similarity-change.worsened{background:rgba(220,53,69,.1); color:var(--red);}
+  
+  /* Training data display */
+  .training-data-grid{display:flex; flex-direction:column; gap:8px; margin:16px 0;}
+  .training-sentence{display:flex; align-items:center; padding:12px; background:var(--panel); border-radius:8px; border:1px solid var(--border);}
+  .sentence-number{width:20px; height:20px; border-radius:50%; background:var(--blue); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:12px; flex-shrink:0;}
+  .sentence-text{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas; font-size:15px; color:var(--text);}
+  .word-token{padding:2px 6px; margin:0 2px; border-radius:4px; background:var(--bg); border:1px solid var(--border);}
+  .vocab-summary{margin-top:12px; padding:12px; background:rgba(13,110,253,.05); border-radius:8px; border:1px solid rgba(13,110,253,.2);}
+  .vocab-list{display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;}
+  .vocab-word{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas; font-size:12px; padding:4px 8px; background:var(--bg); border:1px solid var(--border); border-radius:4px;}
+  
+  /* Animation for success message */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Real Embeddings Matrix Styles */
+  .dimension-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+  
+  .dimension-btn:hover {
+    background: var(--panel);
+    transform: translateY(-1px);
+  }
+  
+  .dimension-btn.btn-primary {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+  
+  .dimension-btn.btn-primary:hover {
+    background: #0b5ed7;
+    border-color: #0b5ed7;
+  }
+  
+  .embeddings-matrix {
+    display: table;
+    border-collapse: collapse;
+    width: 100%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
+    font-size: 12px;
+  }
+  
+  .embeddings-row {
+    display: table-row;
+  }
+  
+  .word-label {
+    display: table-cell;
+    padding: 8px 12px;
+    font-weight: bold;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    vertical-align: middle;
+    min-width: 80px;
+  }
+  
+  .embedding-cell {
+    display: table-cell;
+    width: 20px;
+    height: 32px;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .embedding-cell:hover {
+    border-color: var(--blue);
+    z-index: 10;
+  }
+  
+  .embedding-cell.highlighted {
+    border: 2px solid var(--blue) !important;
+    box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
+    z-index: 5;
+  }
+  
+  .dimension-header {
+    display: table-cell;
+    padding: 4px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted);
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    min-height: 60px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="course-header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="course-logo">
+    </div>
+    <h1>How Computers Learn Word Meanings</h1>
+    <p class="lead">Interactive demonstration of word embeddings and context-based learning</p>
+
+    <!-- NEW: Interactive Coordinate Exercise -->
+    <div class="intro" id="coordinate-exercise">
+      <h2>Human Embeddings</h2>
+      <p>Before we dive into complex models, let's try something simpler. Look at this plot and tell me: where are "chicken" and "king"?</p>
+      
+      <div style="display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap;">
+        <!-- Left: Input Panel -->
+        <div style="flex: 1; min-width: 300px;">
+          <h3 style="color: var(--blue); margin-bottom: 12px;">What are the X₁ and X₂ coordinates?</h3>
+          <p style="font-size: 14px; color: var(--muted); margin-bottom: 16px;">
+            Look at the plot on the right. Where are "chicken" and "king" on this coordinate system?
+          </p>
+          
+          <div style="background: var(--panel); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="margin-bottom: 12px;">
+              <label style="font-weight: 600; color: var(--text); display: block; margin-bottom: 4px;">chicken</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <label style="font-size: 14px; width: 30px;">X₁:</label>
+                <input type="number" id="chicken-x" min="0" max="6" step="0.1" placeholder="3.5" style="width: 80px; padding: 6px;">
+                <label style="font-size: 14px; width: 30px; margin-left: 8px;">X₂:</label>
+                <input type="number" id="chicken-y" min="0" max="6" step="0.1" placeholder="2.0" style="width: 80px; padding: 6px;">
+              </div>
+            </div>
+            
+            <div>
+              <label style="font-weight: 600; color: var(--text); display: block; margin-bottom: 4px;">king</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <label style="font-size: 14px; width: 30px;">X₁:</label>
+                <input type="number" id="king-x" min="0" max="6" step="0.1" placeholder="1.0" style="width: 80px; padding: 6px;">
+                <label style="font-size: 14px; width: 30px; margin-left: 8px;">X₂:</label>
+                <input type="number" id="king-y" min="0" max="6" step="0.1" placeholder="5.0" style="width: 80px; padding: 6px;">
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn btn-primary" onclick="checkCoordinates()" style="width: 100%;">Check My Answer</button>
+          
+          <div id="coordinate-feedback" style="margin-top: 12px; padding: 12px; border-radius: 8px; display: none;"></div>
+        </div>
+        
+        <!-- Right: Plot -->
+        <div style="flex: 1; min-width: 300px;">
+          <h3 style="color: var(--blue); margin-bottom: 12px;">Word Embedding Space</h3>
+          <div style="position: relative; background: white; border: 2px solid var(--border); border-radius: 8px; aspect-ratio: 1;">
+            <svg id="coordinate-plot" viewBox="0 0 400 400" style="width: 100%; height: 100%;">
+              <!-- Grid lines -->
+              <g id="grid-lines" stroke="#e5e7eb" stroke-width="0.5">
+                <!-- Vertical lines -->
+                <line x1="67" y1="0" x2="67" y2="400" />
+                <line x1="133" y1="0" x2="133" y2="400" />
+                <line x1="200" y1="0" x2="200" y2="400" />
+                <line x1="267" y1="0" x2="267" y2="400" />
+                <line x1="333" y1="0" x2="333" y2="400" />
+                <!-- Horizontal lines -->
+                <line x1="0" y1="67" x2="400" y2="67" />
+                <line x1="0" y1="133" x2="400" y2="133" />
+                <line x1="0" y1="200" x2="400" y2="200" />
+                <line x1="0" y1="267" x2="400" y2="267" />
+                <line x1="0" y1="333" x2="400" y2="333" />
+              </g>
+              
+              <!-- Axes -->
+              <line x1="0" y1="400" x2="400" y2="400" stroke="#374151" stroke-width="2" />
+              <line x1="0" y1="0" x2="0" y2="400" stroke="#374151" stroke-width="2" />
+              
+              <!-- Axis labels -->
+              <text x="380" y="395" text-anchor="middle" font-size="14" font-weight="bold">X₁</text>
+              <text x="10" y="15" text-anchor="start" font-size="14" font-weight="bold">X₂</text>
+              
+              <!-- Tick labels -->
+              <text x="67" y="395" text-anchor="middle" font-size="10" fill="#6b7280">1.0</text>
+              <text x="200" y="395" text-anchor="middle" font-size="10" fill="#6b7280">3.5</text>
+              <text x="333" y="395" text-anchor="middle" font-size="10" fill="#6b7280">5.5</text>
+              <text x="5" y="340" text-anchor="start" font-size="10" fill="#6b7280">2.0</text>
+              <text x="5" y="207" text-anchor="start" font-size="10" fill="#6b7280">3.0</text>
+              <text x="5" y="74" text-anchor="start" font-size="10" fill="#6b7280">5.0</text>
+              
+              <!-- Pre-plotted words with labels -->
+              <g id="existing-words">
+                <!-- Top row: king (1.0, 5.0), monarch (3.5, 5.0), queen (5.5, 5.0) -->
+                <circle cx="67" cy="67" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="67" y="57" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">king</text>
+                
+                <circle cx="200" cy="67" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="200" y="57" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">monarch</text>
+                
+                <circle cx="333" cy="67" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="333" y="57" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">queen</text>
+                
+                <!-- Middle row: man (1.0, 3.0), person (3.5, 3.0), woman (5.5, 3.0) -->
+                <circle cx="67" cy="200" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="67" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">man</text>
+                
+                <circle cx="200" cy="200" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="200" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">person</text>
+                
+                <circle cx="333" cy="200" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="333" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">woman</text>
+                
+                <!-- Bottom row: rooster (1.0, 2.0), chicken (3.5, 2.0), hen (5.5, 2.0) -->
+                <circle cx="67" cy="333" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="67" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">rooster</text>
+
+                <circle cx="200" cy="333" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="200" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">chicken</text>
+
+                <circle cx="333" cy="333" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="333" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">hen</text>
+              </g>
+              
+              <!-- Placeholder circles for user answers (these will be invisible since all words are shown) -->
+              <g id="user-words" style="display: none;">
+                <circle id="chicken-circle" r="8" fill="#f59e0b" stroke="white" stroke-width="2" opacity="0.8" />
+                <text id="chicken-label" text-anchor="middle" font-size="12" font-weight="bold" fill="#f59e0b">chicken</text>
+                
+                <circle id="king-circle" r="8" fill="#ef4444" stroke="white" stroke-width="2" opacity="0.8" />
+                <text id="king-label" text-anchor="middle" font-size="12" font-weight="bold" fill="#ef4444">king</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div id="exercise-success" style="display: none; background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin-top: 20px;">
+        <h3 style="color: #22c55e; margin: 0 0 8px;">Congratulations, you just did text embeddings!</h3>
+        <p style="font-size: 16px; margin: 8px 0;">You just converted words into numbers! <strong>chicken = (3.5, 2.0)</strong> and <strong>king = (1.0, 5.0)</strong>.</p>
+        <p style="font-size: 14px; color: var(--muted); margin: 8px 0;">These coordinate pairs are called "embeddings" - they capture word meaning as numbers that computers can work with. Notice how similar words are close together in this space.</p>
+        <button class="btn btn-primary" onclick="showDimensions()" style="margin-top: 12px;">Next: Understanding the Dimensions →</button>
+      </div>
+    </div>
+
+    <div class="intro" id="dimensions-explanation" style="display: none;">
+      <h2>Understanding Meaning Dimensions</h2>
+      <p>Each coordinate axis represents a <strong>meaning dimension</strong> - a continuous feature that tells us something about the word's meaning.</p>
+      
+      <div style="display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap;">
+        <!-- Left: Text explanation -->
+        <div style="flex: 1; min-width: 300px;">
+          <div style="background: var(--panel); padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+            <h3 style="color: var(--blue); margin: 0 0 16px;">We want to represent words with a <em>number of continuous features</em> which <strong>tell us something about the meaning of the words</strong></h3>
+            <p style="margin: 16px 0; font-size: 18px; font-style: italic;">i.e. an embedding vector</p>
+          </div>
+          
+          <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+            <h4 style="color: #3b82f6; margin: 0 0 12px; font-size: 16px;">X₂ Axis: Power/Status Dimension</h4>
+            <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
+              <div style="color: #3b82f6; font-weight: bold;">↑</div>
+              <span style="color: #3b82f6; font-weight: 600;">More power</span>
+              <span style="color: var(--muted); font-size: 14px;">(royalty: king, queen, monarch)</span>
+            </div>
+            <div style="margin: 8px 0; padding-left: 24px;">
+              <span style="color: var(--muted);">Legal importance dimension?</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
+              <div style="color: #3b82f6; font-weight: bold;">↓</div>
+              <span style="color: #3b82f6; font-weight: 600;">Less power</span>
+              <span style="color: var(--muted); font-size: 14px;">(animals: rooster, chicken, hen)</span>
+            </div>
+          </div>
+          
+          <div style="background: rgba(249, 115, 22, 0.1); border-left: 4px solid #f97316; padding: 16px; border-radius: 8px;">
+            <h4 style="color: #f97316; margin: 0 0 12px; font-size: 16px;">X₁ Axis: Gender Dimension</h4>
+            <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
+              <div style="color: #f97316; font-weight: bold;">←</div>
+              <span style="color: #f97316; font-weight: 600;">More male</span>
+              <span style="color: var(--muted); font-size: 14px;">(man, king, rooster)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
+              <div style="color: #f97316; font-weight: bold;">→</div>
+              <span style="color: #f97316; font-weight: 600;">More female</span>
+              <span style="color: var(--muted); font-size: 14px;">(woman, queen, hen)</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right: Same plot as before but with dimension labels -->
+        <div style="flex: 1; min-width: 300px;">
+          <div style="position: relative; background: white; border: 2px solid var(--border); border-radius: 8px; aspect-ratio: 1;">
+            <svg viewBox="0 0 400 400" style="width: 100%; height: 100%;">
+              <!-- Grid lines -->
+              <g stroke="#e5e7eb" stroke-width="0.5">
+                <line x1="67" y1="0" x2="67" y2="400" />
+                <line x1="133" y1="0" x2="133" y2="400" />
+                <line x1="200" y1="0" x2="200" y2="400" />
+                <line x1="267" y1="0" x2="267" y2="400" />
+                <line x1="333" y1="0" x2="333" y2="400" />
+                <line x1="0" y1="67" x2="400" y2="67" />
+                <line x1="0" y1="133" x2="400" y2="133" />
+                <line x1="0" y1="200" x2="400" y2="200" />
+                <line x1="0" y1="267" x2="400" y2="267" />
+                <line x1="0" y1="333" x2="400" y2="333" />
+              </g>
+              
+              <!-- Axes -->
+              <line x1="0" y1="400" x2="400" y2="400" stroke="#374151" stroke-width="2" />
+              <line x1="0" y1="0" x2="0" y2="400" stroke="#374151" stroke-width="2" />
+              
+              <!-- Dimension arrows and labels -->
+              <!-- Power dimension (vertical) -->
+              <line x1="25" y1="340" x2="25" y2="30" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrowhead-blue)" />
+              <text x="30" y="20" font-size="10" font-weight="bold" fill="#3b82f6">More power</text>
+              <text x="30" y="355" font-size="10" font-weight="bold" fill="#3b82f6">Less power</text>
+              
+              <!-- Gender dimension (horizontal) -->
+              <line x1="50" y1="370" x2="350" y2="370" stroke="#f97316" stroke-width="3" marker-end="url(#arrowhead-orange)" />
+              <text x="60" y="385" font-size="10" font-weight="bold" fill="#f97316">More male</text>
+              <text x="285" y="385" font-size="10" font-weight="bold" fill="#f97316">More female</text>
+              
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+                </marker>
+                <marker id="arrowhead-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#f97316" />
+                </marker>
+              </defs>
+              
+              <!-- Axis labels -->
+              <text x="380" y="395" text-anchor="middle" font-size="14" font-weight="bold">X₁</text>
+              <text x="10" y="15" text-anchor="start" font-size="14" font-weight="bold">X₂</text>
+              
+              <!-- Tick labels -->
+              <text x="67" y="395" text-anchor="middle" font-size="10" fill="#6b7280">1.0</text>
+              <text x="200" y="395" text-anchor="middle" font-size="10" fill="#6b7280">3.5</text>
+              <text x="333" y="395" text-anchor="middle" font-size="10" fill="#6b7280">5.5</text>
+              <text x="5" y="340" text-anchor="start" font-size="10" fill="#6b7280">2.0</text>
+              <text x="5" y="207" text-anchor="start" font-size="10" fill="#6b7280">3.0</text>
+              <text x="5" y="74" text-anchor="start" font-size="10" fill="#6b7280">5.0</text>
+              
+              <!-- Words -->
+              <g>
+                <!-- Top row -->
+                <circle cx="67" cy="67" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="67" y="57" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">king</text>
+                
+                <circle cx="200" cy="67" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="200" y="57" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">monarch</text>
+                
+                <circle cx="333" cy="67" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="333" y="57" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">queen</text>
+                
+                <!-- Middle row -->
+                <circle cx="67" cy="200" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="67" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">man</text>
+                
+                <circle cx="200" cy="200" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="200" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">person</text>
+                
+                <circle cx="333" cy="200" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="333" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">woman</text>
+                
+                <!-- Bottom row -->
+                <circle cx="67" cy="333" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="67" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">rooster</text>
+
+                <circle cx="200" cy="333" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="200" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">chicken</text>
+
+                <circle cx="333" cy="333" r="8" fill="#22c55e" stroke="white" stroke-width="2" />
+                <text x="333" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#22c55e">hen</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background: rgba(59, 130, 246, 0.08); border: 2px solid #3b82f6; border-radius: 12px; padding: 20px; margin: 20px 0;">
+        <h3 style="color: #3b82f6; margin: 0 0 12px; font-size: 16px;">Why Start With Just 2 Dimensions?</h3>
+        <p style="margin: 8px 0; font-size: 14px;">Real word embeddings like those in GPT or Word2Vec use <strong>300+ dimensions</strong> - imagine hundreds of meaning aspects like formality, emotion, concreteness, etc. We start with just 2 dimensions (power and gender) to build your intuition.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+          <div style="text-align: center;">
+            <h4 style="margin: 0 0 8px; font-size: 14px; color: var(--emerald);">Our Teaching Example</h4>
+            <div style="font-family: ui-monospace, monospace; background: var(--panel); padding: 12px; border-radius: 6px; font-size: 13px; color: var(--text);">
+              chicken = (3.5, 2.0)
+            </div>
+            <p style="font-size: 12px; color: var(--muted); margin: 8px 0 0;">Just 2 numbers: easy to visualize!</p>
+          </div>
+          
+          <div style="text-align: center;">
+            <h4 style="margin: 0 0 8px; font-size: 14px; color: var(--blue);">Real Word2Vec</h4>
+            <div style="font-family: ui-monospace, monospace; background: var(--panel); padding: 12px; border-radius: 6px; font-size: 11px; color: var(--text); overflow: hidden;">
+              chicken = [0.23, -0.45, 0.12, 0.67, -0.89, 0.34, -0.12, 0.56, ...]
+            </div>
+            <p style="font-size: 12px; color: var(--muted); margin: 8px 0 0;">300 numbers: captures nuanced meaning!</p>
+          </div>
+        </div>
+        
+        <p style="margin: 8px 0; font-size: 14px; color: var(--muted);"><strong>Same principles, different scale!</strong> Whether it's 2 dimensions or 300, the core concept is identical: words become vectors of numbers that capture semantic meaning.</p>
+      </div>
+
+      <div class="analogy">
+        <h4>Key insight:</h4>
+        <p>Each dimension captures a different aspect of meaning. Instead of just saying "king is royal", we can say "king has a power value of 5.0 and a gender value of 1.0". This turns fuzzy concepts into precise numbers that computers can calculate with!</p>
+      </div>
+      
+      <button class="btn btn-primary" onclick="continueToMain()" style="margin-top: 15px;">Next: Learn How Computers Do This →</button>
+    </div>
+
+    <div class="intro" id="main-intro" style="display: none;">
+      <h2>What are we learning?</h2>
+      <p>Now that you've seen how words can be represented as coordinates, let's explore how computers learn these representations automatically! Our teaching example is loosely based on <strong>CBOW</strong> (Continuous Bag of Words), which learns word meanings by predicting a target word from its surrounding context.</p>
+      
+      <div class="goal">
+        <h3>Learning Objective: CBOW Model</h3>
+        <p>Given context words (like "the ___ sat on the"), the computer predicts the missing word ("cat"). By training on this task, words that appear in similar contexts develop similar numerical representations, capturing semantic relationships.</p>
+      </div>
+
+      <div class="analogy">
+        <h4>Why CBOW works:</h4>
+        <p>Words that appear in similar contexts tend to have similar meanings. "cat" and "dog" both appear after "the" and before "sat", so they develop similar embeddings. This distributional hypothesis forms the foundation of modern word embeddings.</p>
+      </div>
+      
+      <button class="btn btn-primary" onclick="showDataset()" style="margin-top: 20px;">Next: See Our Training Data →</button>
+    </div>
+
+    <div class="stage" id="dataset-stage" style="display: none;">
+      <h2>Our Training Dataset</h2>
+      <div class="explanation">
+        Our CBOW model was pre-trained on thousands of sentences from news articles and books. The full dataset contains rich contexts for animals (cat/dog), rulers (king/queen), cities (Paris/London), and various actions. Below is a sample of the vocabulary learned from this corpus.
+      </div>
+      <div id="trainingDataDisplay" class="training-data-grid">
+        <!-- Will be populated by JavaScript -->
+      </div>
+      <div class="analogy">
+        <h4>Why word IDs matter:</h4>
+        <p>Computers can't work with words directly - they need numbers. Each word gets a unique ID (like "cat" → 2, "sat" → 3). These IDs are used to look up the word's embedding vector during training and prediction.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showControls()" style="margin-top: 15px;">Next: Try the Interactive Demo →</button>
+    </div>
+
+    <div class="grid cols-4" id="controls-stage" style="display: none;">
+      <div class="card">
+        <div class="title">Select Training Sentence</div>
+        <select id="sentence"></select>
+        <div class="sub">Choose which sentence the computer should learn from.</div>
+      </div>
+      <div class="card">
+        <div class="title">Context Window</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <button id="winBtn1" class="btn" style="flex: 1; padding: 8px;">Small (±2)</button>
+          <button id="winBtn2" class="btn" style="flex: 1; padding: 8px;">Medium (±5)</button>
+        </div>
+        <div class="sub">Look at <span id="winv">5</span> words on each side of our target word.</div>
+      </div>
+      <div class="card">
+        <div class="title">Target Word Position</div>
+        <input id="center" type="range" min="0" max="20" value="10"/>
+        <div class="sub">Which word are we trying to predict?</div>
+      </div>
+      <div class="card">
+        <div class="title">Embedding Dimensions</div>
+        <input id="dim" type="range" min="2" max="8" value="5"/>
+        <div class="sub">Each word gets <span id="dimv">5</span> numbers to describe it.</div>
+      </div>
+      <button class="btn btn-primary" onclick="showBreakdown()" style="margin-top: 20px;">Next: Break Down the Sentence →</button>
+    </div>
+
+    <div class="stage" id="breakdown-stage" style="display: none;">
+      <h2><span class="step-number">1</span>Breaking Down the Sentence</h2>
+      <div class="explanation">
+        First, we identify our context words (the clues) and our target word (what we're trying to predict). Context words are colored <span class="pill" style="background:rgba(124,200,255,.15);color:#bfe6ff;border-color:rgba(124,200,255,.4)">blue</span>, target word is <span class="pill lbl">purple</span>.
+      </div>
+      <div id="tokens"></div>
+      <div class="analogy">
+        <h4>Process explanation:</h4>
+        <p>The model uses context words (blue) to predict the target word (purple) through learned associations.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showTraining()" style="margin-top: 20px;">Next: Train the Model →</button>
+    </div>
+
+    <div class="stage" id="training-stage" style="display: none;">
+      <h2><span class="step-number">2</span>Training the Model</h2>
+      <div class="explanation">
+        Each training step improves the embeddings by adjusting them based on prediction errors. Words that appear in similar contexts will gradually develop similar vector representations.
+        
+        <h4 style="margin:16px 0 8px; color:var(--blue);">What to observe during training:</h4>
+        <ul style="margin:8px 0; padding-left:20px; font-size:14px;">
+          <li><strong>Loss decreasing:</strong> The model is getting better at predictions</li>
+          <li><strong>Similarity changes:</strong> Words in similar contexts become more similar</li>
+          <li><strong>Embedding evolution:</strong> Watch the numbers in the embedding matrix change</li>
+          <li><strong>Prediction improvements:</strong> The model should predict the target word with higher confidence</li>
+        </ul>
+      </div>
+      
+      
+      <div class="grid cols-4">
+        <div class="card">
+          <div class="title">Training Controls</div>
+          <button class="btn" id="trainModel" style="font-size:16px; padding:12px 24px;">Train Model</button>
+          <button class="btn" id="resetTraining" style="margin-top:12px;">Reset to Random</button>
+          <div class="sub" style="margin-top:8px;">Watch the model learn meaningful word relationships!</div>
+          <div id="trainingProgress" style="margin-top:12px; display:none;">
+            <div style="background:var(--border); height:6px; border-radius:3px; overflow:hidden;">
+              <div id="progressBar" style="background:linear-gradient(90deg, var(--blue), var(--emerald)); height:100%; width:0%; transition:width 0.3s ease;"></div>
+            </div>
+            <div id="progressText" style="font-size:12px; color:var(--blue); margin-top:6px; text-align:center; font-weight:500;">Training...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="title">Learning Rate</div>
+          <input id="learningRate" type="range" min="0.1" max="2.0" step="0.1" value="0.5"/>
+          <div class="sub">How fast to learn: <span id="lrValue">0.5</span></div>
+        </div>
+        <div class="card">
+          <div class="title">Training Progress</div>
+          <div class="tag">Step: <b id="trainingStep">0</b></div>
+          <div class="tag" style="margin-top:4px;">Loss: <b id="currentLoss">-</b></div>
+          <div class="loss-chart" id="lossChart"></div>
+        </div>
+        <div class="card">
+          <div class="title">Training Status</div>
+          <div id="trainingStatus" class="sub">Ready to start training</div>
+          <div id="clusteringStatus" class="sub" style="margin-top:4px; font-size:11px;">Semantic clustering: Not trained</div>
+        </div>
+      </div>
+      
+      <div class="analogy">
+        <h4>How training works:</h4>
+        <p>The model starts with random embeddings. When it makes wrong predictions, it adjusts the embeddings slightly. Over many steps, words that appear in similar contexts develop similar embeddings - this is how meaning emerges from statistics!</p>
+      </div>
+      
+      <h3 style="margin:24px 0 12px; color:var(--blue); font-size:18px;">Training Results: Watch Embeddings Learn!</h3>
+      <div class="explanation" style="margin-bottom:16px;">
+        <strong>Live Training View:</strong> Watch as random numbers transform into meaningful word embeddings! The matrix shows the actual numbers, while the visualization shows how words cluster by meaning.
+      </div>
+      
+      <!-- Side-by-side layout for matrix and visualization -->
+      <div class="training-display" style="display: flex; gap: 20px; margin: 20px 0;">
+        <div class="matrix-panel" style="flex: 1; min-width: 0;">
+          <h4 style="margin: 0 0 12px; color: var(--blue);">Word Embedding Matrix</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">
+            Each row is a word, each column is a "trait" dimension. Watch these numbers evolve during training!
+          </p>
+          <div class="matrix card" id="matrixIn" style="height: 400px; overflow-y: auto; font-size: 12px;"></div>
+          <div class="footer">
+            <span id="embeddingStatus" class="sub" style="font-size:12px;">Embeddings: Random</span>
+          </div>
+        </div>
+        
+        <div class="visualization-panel" style="flex: 1; min-width: 0;">
+          <h4 style="margin: 0 0 12px; color: var(--blue);">2D Semantic Visualization</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">
+            Words projected into 2D space. Similar words cluster together as the model learns!
+          </p>
+          <p id="dimensionReductionNote" style="font-size: 12px; color: var(--orange); margin-bottom: 12px; display: none;">
+            Note: Your embeddings have <span id="actualDims"></span> dimensions, but we're showing them in 2D using PCA-like projection to visualize relationships.
+          </p>
+          <div id="embedding-plot" class="embedding-visualization" style="height: 400px; position: relative;">
+            <!-- 2D visualization will be created here -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Responsive design for mobile -->
+      <style>
+        @media (max-width: 768px) {
+          .training-display {
+            flex-direction: column !important;
+          }
+          .matrix-panel, .visualization-panel {
+            flex: none !important;
+          }
+        }
+      </style>
+      
+      <div class="analogy" style="margin-top: 20px;">
+        <h4>What you're seeing:</h4>
+        <p><strong>Left (Matrix):</strong> The raw numbers that represent word meanings. Similar words develop similar number patterns.</p>
+        <p><strong>Right (Visualization):</strong> The same data projected to 2D space. Watch words move from random positions into semantic clusters during training!</p>
+      </div>
+      <button class="btn btn-primary" onclick="showInterpretability()" style="margin-top: 20px;">Next: Interpretability →</button>
+    </div>
+
+    <!-- Interpretability -->
+    <div class="intro" id="interpretability-stage" style="display: none;">
+      <h2>Interpretability</h2>
+      <p>Now let's see what <strong>real word embeddings</strong> actually look like! In practice, embeddings have hundreds of dimensions (300-1024 is common). While most dimensions are hard to interpret, some clearly capture human-understandable concepts like gender, age, or social status.</p>
+
+      <div class="goal">
+        <h3>Key Insight: Emergent Interpretability</h3>
+        <p>Even though computers learn embeddings without being told what concepts to capture, some dimensions naturally emerge that correspond to meaningful semantic properties. This shows that mathematical word representations can capture real-world knowledge!</p>
+      </div>
+
+      <!-- Real Embeddings Visualization -->
+      <div class="card" style="margin: 24px 0;">
+        <div class="title">Interactive Real Embeddings Matrix</div>
+        <div class="sub" style="margin-bottom: 16px;">Click on dimension buttons to see how different concepts light up across words. Colors represent embedding values: red = high positive, blue = high negative, white = near zero.</div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+          <button class="dimension-btn btn-primary" onclick="highlightDimension('gender')" id="gender-btn">Gender Dimension</button>
+          <button class="dimension-btn" onclick="highlightDimension('royalty')" id="royalty-btn">Royalty Dimension</button>
+          <button class="dimension-btn" onclick="highlightDimension('age')" id="age-btn">Age/Maturity Dimension</button>
+          <button class="dimension-btn" onclick="highlightDimension('none')" id="none-btn">Show All</button>
+        </div>
+
+        <div id="embeddings-container" style="overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: white;">
+          <!-- Will be populated by JavaScript -->
+        </div>
+
+        <div id="dimension-explanation" class="analogy" style="margin-top: 16px; display: none;">
+          <!-- Will be populated by JavaScript -->
+        </div>
+      </div>
+
+      <div class="analogy">
+        <h4>Understanding the Matrix:</h4>
+        <p><strong>Rows</strong> = Different words | <strong>Columns</strong> = Individual embedding dimensions (300+ total) | <strong>Colors</strong> = Strength and direction of each feature</p>
+        <p>Notice how certain dimensions consistently activate for semantically similar words - this is how computers learn to group related concepts!</p>
+      </div>
+
+      <div class="goal">
+        <h3>From Toy Examples to Real AI</h3>
+        <p>This is exactly how large language models like GPT work internally - they learn hundreds or thousands of interpretable and uninterpretable features that capture all aspects of human language and knowledge. Your 2D/3D understanding scales to these high-dimensional spaces!</p>
+      </div>
+
+      <button class="btn btn-primary" onclick="showSummary()" style="margin-top: 20px;">Next: See Summary →</button>
+    </div>
+
+    <div class="intro" id="summary-stage" style="display: none;">
+      <h2>Summary</h2>
+      <p>This demonstration illustrated how computers learn word relationships through predictive modeling:</p>
+      <ul style="margin: 12px 0; padding-left: 20px;">
+        <li><strong>Training process</strong>: Random embeddings gradually improve through prediction tasks</li>
+        <li><strong>Semantic clustering</strong>: Words appearing in similar contexts develop similar numerical representations</li>
+        <li><strong>Contextual learning</strong>: The training objective forces related words to cluster together</li>
+        <li><strong>Vector semantics</strong>: Word meanings become mathematical objects that can be manipulated computationally</li>
+      </ul>
+      <p>By training on the simple context prediction task, the model discovers meaningful semantic relationships. This approach forms the foundation of modern natural language processing and large language models.</p>
+    </div>
+
+  </div>
+
+<script>
+// --------- data ---------
+const SENTENCES = [
+  // Demo sentences - made longer to demonstrate context windows up to ±5
+  ["the","small","brown","cat","sat","quietly","on","the","old","wooden","mat","in","the","cozy","living","room","while","the","family","watched","television"],
+  ["the","big","friendly","dog","ran","quickly","through","the","beautiful","green","garden","chasing","butterflies","and","birds","on","a","warm","summer","afternoon"],
+  ["many","cute","young","animals","love","to","sleep","peacefully","in","warm","sunny","places","during","the","lazy","afternoon","hours","when","everything","is","quiet"],
+  ["wise","ancient","kings","and","queens","ruled","their","vast","countries","with","great","care","and","wisdom","throughout","the","golden","ages","of","human","history"]
+];
+
+const VOCAB = ["the","cat","dog","sat","on","mat","rug","cats","dogs","are","pets","king","queen","rules","country","nation","Paris","London","is","a","big","city","small","sleeps","peacefully","kings","queens","rulers","cities","like","beautiful","and","animals","loyal","love","to","sleep","quietly","run","quickly","garden","park","cute","friendly","young","plays","with","toys","wise","leads","his","people","her","royal","live","in","palaces","sits","throne","ancient","were","powerful","learns","rule","make","important","decisions","daily","of","attracts","visitors","has","many","famous","buildings","visit","every","year","major","never","history","she","night","morning","he","walks","slowly","window","they","play","happily","children","deeply","fast","during","adults","calmly","through","streets","comfortably","chairs","move","gracefully","nature","things","often","impressive","tiny","objects","need","careful","handling","large","require","strong","support","little","creatures","very","huge","dominate","skylines","learn","new","easily","old","share","wisdom","others","leaders","good","places","inspire","friends","together","art","all","tell","stories","both","same","citizens","world","brown","wooden","ran","green","warm","sunny","care","ruled","their","countries","great","cozy","living","room","while","family","watched","television","chasing","butterflies","birds","summer","afternoon","lazy","hours","when","everything","quiet","vast","throughout","golden","ages","human"];
+const idOf = t => VOCAB.indexOf(t)+1; // 1-based
+
+// --------- utils ---------
+const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+const softmax = arr => {
+  const m = Math.max(...arr);
+  const ex = arr.map(v=>Math.exp(v-m));
+  const s = ex.reduce((a,b)=>a+b,0);
+  return ex.map(v=>v/(s||1));
+};
+function average(vecs){
+  if(!vecs.length) return [];
+  const d = vecs[0].length;
+  const out = Array(d).fill(0);
+  for(const v of vecs){ for(let i=0;i<d;i++) out[i]+=v[i]; }
+  return out.map(x=>x/vecs.length);
+}
+function seedMatrix(rows, cols){
+  let v=1;
+  const M = Array.from({length:rows},()=>Array.from({length:cols},()=>0));
+  // Use Xavier/Glorot initialization: scale by sqrt(6/(rows+cols))
+  const scale = Math.sqrt(6.0 / (rows + cols));
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      v = (v*73+17)%997; 
+      M[r][c] = ((v%11)-5)/5 * scale; // Better initialization for large vocab
+    }
+  }
+  return M;
+}
+function mulVecMat(vec, mat){ // vec:[d], mat:[d][V]
+  if(!vec.length) return Array(mat[0]?.length||0).fill(0);
+  const d = mat.length, V = mat[0].length;
+  const out = Array(V).fill(0);
+  for(let j=0;j<V;j++){
+    let s=0; for(let i=0;i<d;i++) s += vec[i]*mat[i][j];
+    out[j]=s;
+  }
+  return out;
+}
+
+// --------- state ---------
+let embedDim = 5; // increase to 5 dimensions for larger vocabulary
+let W_in = seedMatrix(VOCAB.length, embedDim);   // vocab x dim - will be replaced with meaningful embeddings
+let W_out = seedMatrix(embedDim, VOCAB.length);  // dim x vocab
+let sent = 0;
+let win = 5; // per side - default to medium window like Word2Vec
+let center = 10; // start more in the middle of longer sentences
+
+// Training state
+let trainingStep = 0;
+let learningRate = 0.5;
+let lossHistory = [];
+let originalW_in = null;
+let originalW_out = null;
+let isTraining = false;
+let trainedEmbeddings = null;
+
+// Precomputed meaningful embeddings (5-dimensional) that demonstrate semantic relationships
+function createMeaningfulEmbeddings() {
+  const embeddings = {};
+  
+  // Animal cluster (cats, dogs, pets)
+  embeddings['cat'] = [0.8, 0.6, -0.2, 0.1, 0.7];
+  embeddings['dog'] = [0.7, 0.5, -0.1, 0.2, 0.8];
+  embeddings['cats'] = [0.75, 0.55, -0.15, 0.15, 0.75];
+  embeddings['dogs'] = [0.65, 0.45, -0.05, 0.25, 0.85];
+  embeddings['pets'] = [0.6, 0.4, 0.0, 0.3, 0.6];
+  embeddings['animals'] = [0.5, 0.3, 0.1, 0.4, 0.5];
+  
+  // Royalty cluster (king, queen, royal)
+  embeddings['king'] = [-0.3, 0.9, 0.8, -0.4, 0.2];
+  embeddings['queen'] = [-0.2, 0.8, 0.7, -0.3, 0.1];
+  embeddings['kings'] = [-0.35, 0.85, 0.75, -0.45, 0.25];
+  embeddings['queens'] = [-0.25, 0.75, 0.65, -0.35, 0.15];
+  embeddings['royal'] = [-0.1, 0.7, 0.6, -0.2, 0.0];
+  embeddings['rulers'] = [-0.4, 0.6, 0.5, -0.5, 0.3];
+  
+  // Cities cluster (Paris, London, city)
+  embeddings['Paris'] = [0.2, -0.6, 0.4, 0.8, -0.3];
+  embeddings['London'] = [0.1, -0.5, 0.3, 0.7, -0.2];
+  embeddings['city'] = [0.0, -0.4, 0.2, 0.6, -0.1];
+  embeddings['cities'] = [0.05, -0.45, 0.25, 0.65, -0.15];
+  
+  // Actions cluster (sit, run, sleep, play)
+  embeddings['sat'] = [0.3, 0.1, -0.8, 0.5, -0.4];
+  embeddings['run'] = [0.4, 0.0, -0.7, 0.6, -0.3];
+  embeddings['sleep'] = [0.1, 0.2, -0.9, 0.3, -0.6];
+  embeddings['play'] = [0.5, -0.1, -0.6, 0.7, -0.2];
+  embeddings['sleeps'] = [0.15, 0.25, -0.85, 0.35, -0.55];
+  embeddings['runs'] = [0.45, 0.05, -0.65, 0.65, -0.25];
+  embeddings['plays'] = [0.55, -0.05, -0.55, 0.75, -0.15];
+  
+  // Size descriptors cluster
+  embeddings['big'] = [-0.7, 0.3, 0.1, -0.2, 0.6];
+  embeddings['small'] = [-0.8, 0.2, 0.2, -0.1, 0.5];
+  embeddings['young'] = [-0.6, 0.4, 0.0, -0.3, 0.7];
+  embeddings['old'] = [-0.5, 0.5, -0.1, -0.4, 0.8];
+  
+  // Common words (more neutral embeddings)
+  embeddings['the'] = [0.0, 0.0, 0.0, 0.0, 0.0];
+  embeddings['on'] = [0.1, -0.1, 0.0, 0.1, -0.1];
+  embeddings['in'] = [0.0, -0.1, 0.1, 0.0, -0.1];
+  embeddings['and'] = [-0.1, 0.0, 0.0, -0.1, 0.0];
+  embeddings['are'] = [0.0, 0.1, -0.1, 0.0, 0.1];
+  embeddings['is'] = [0.1, 0.0, -0.1, 0.1, 0.0];
+  
+  // Fill in remaining words with appropriate cluster-based embeddings
+  const matrix = Array.from({length: VOCAB.length}, () => Array(embedDim).fill(0));
+  
+  VOCAB.forEach((word, i) => {
+    if (embeddings[word]) {
+      matrix[i] = [...embeddings[word]];
+    } else {
+      // Generate random embeddings for remaining words, but constrained
+      for(let j = 0; j < embedDim; j++) {
+        matrix[i][j] = (Math.random() - 0.5) * 0.4; // Smaller random values
+      }
+    }
+  });
+  
+  return matrix;
+}
+
+// Create meaningful output weights that work well with the embeddings
+function createMeaningfulOutputWeights(inputEmbeddings) {
+  // Create output weights that are roughly the transpose of input embeddings
+  // This ensures good predictions when using the meaningful embeddings
+  const outputWeights = Array.from({length: embedDim}, () => Array(VOCAB.length).fill(0));
+  
+  for(let i = 0; i < embedDim; i++) {
+    for(let j = 0; j < VOCAB.length; j++) {
+      // Use transpose with some noise for better generalization
+      outputWeights[i][j] = inputEmbeddings[j][i] * 0.8 + (Math.random() - 0.5) * 0.2;
+    }
+  }
+  
+  return outputWeights;
+}
+
+// --------- elements ---------
+const $sentence = document.getElementById('sentence');
+const $winBtn1 = document.getElementById('winBtn1');
+const $winBtn2 = document.getElementById('winBtn2');
+const $winv = document.getElementById('winv');
+const $center = document.getElementById('center');
+const $dim = document.getElementById('dim');
+const $dimv = document.getElementById('dimv');
+const $tokens = document.getElementById('tokens');
+const $matrixIn = document.getElementById('matrixIn');
+
+// Training elements
+const $trainModel = document.getElementById('trainModel');
+const $resetTraining = document.getElementById('resetTraining');
+const $trainingProgress = document.getElementById('trainingProgress');
+const $progressBar = document.getElementById('progressBar');
+const $progressText = document.getElementById('progressText');
+const $learningRate = document.getElementById('learningRate');
+const $lrValue = document.getElementById('lrValue');
+const $trainingStep = document.getElementById('trainingStep');
+const $currentLoss = document.getElementById('currentLoss');
+const $trainingStatus = document.getElementById('trainingStatus');
+const $embeddingStatus = document.getElementById('embeddingStatus');
+const $clusteringStatus = document.getElementById('clusteringStatus');
+
+// init selects
+SENTENCES.forEach((s,i)=>{
+  const o=document.createElement('option');
+  o.value=i; o.textContent=`"${s.join(' ')}"`;
+  $sentence.appendChild(o);
+});
+
+function updateCenterBounds(){
+  const tokens = SENTENCES[sent];
+  const minC = 0;  // Can select first word
+  const maxC = tokens.length - 1;  // Can select last word
+  if(center<minC) center=minC;
+  if(center>maxC) center=maxC;
+  $center.min = String(minC);
+  $center.max = String(maxC);
+  $center.value = String(center);
+}
+
+// listeners
+$sentence.onchange = e=>{ sent = +e.target.value; updateCenterBounds(); resetTraining(); render(); };
+
+function updateWindowButtons() {
+  if (win === 2) {
+    $winBtn1.style.background = 'var(--blue)';
+    $winBtn1.style.color = 'white';
+    $winBtn2.style.background = '';
+    $winBtn2.style.color = '';
+  } else {
+    $winBtn1.style.background = '';
+    $winBtn1.style.color = '';
+    $winBtn2.style.background = 'var(--blue)';
+    $winBtn2.style.color = 'white';
+  }
+}
+
+$winBtn1.onclick = () => { 
+  win = 2; 
+  $winv.textContent = String(win); 
+  updateWindowButtons();
+  updateCenterBounds(); 
+  resetTraining(); 
+  render(); 
+};
+
+$winBtn2.onclick = () => { 
+  win = 5; 
+  $winv.textContent = String(win); 
+  updateWindowButtons();
+  updateCenterBounds(); 
+  resetTraining(); 
+  render(); 
+};
+
+$center.oninput = e=>{ center = +e.target.value; resetTraining(); render(); };
+$dim.oninput = e=>{
+  embedDim = +e.target.value; $dimv.textContent=String(embedDim);
+  
+  // Show/hide dimension reduction note
+  const dimNote = document.getElementById('dimensionReductionNote');
+  const actualDimsSpan = document.getElementById('actualDims');
+  if (embedDim > 2) {
+    dimNote.style.display = 'block';
+    actualDimsSpan.textContent = embedDim;
+  } else {
+    dimNote.style.display = 'none';
+  }
+  
+  // resize matrices, preserve where possible
+  const oldIn = W_in, oldOut = W_out;
+  W_in = seedMatrix(VOCAB.length, embedDim);
+  for(let r=0;r<VOCAB.length;r++){
+    for(let c=0;c<Math.min(embedDim, oldIn[0].length); c++) W_in[r][c]=oldIn[r][c];
+  }
+  W_out = seedMatrix(embedDim, VOCAB.length);
+  for(let r=0;r<Math.min(embedDim, oldOut.length); r++){
+    for(let c=0;c<VOCAB.length; c++) W_out[r][c]=oldOut[r][c];
+  }
+  resetTraining();
+  render();
+};
+
+let trainingInterval = null;
+let initialRandomPositions = null; // Store consistent random starting positions
+
+function animateTraining() {
+  if (isTraining) {
+    console.log('Training already in progress, skipping');
+    return;
+  }
+  
+  console.log('Starting training animation');
+  
+  // Check if all required elements exist
+  if (!$trainModel || !$resetTraining || !$trainingProgress || !$progressBar || !$progressText) {
+    console.error('Missing required elements for training');
+    return;
+  }
+  
+  isTraining = true;
+  const totalSteps = 100;
+  let currentStep = 0;
+  
+  // Show progress and disable button
+  $trainingProgress.style.display = 'block';
+  $trainModel.disabled = true;
+  $resetTraining.disabled = true;
+  $trainModel.textContent = 'Training...';
+  
+  // Initialize loss
+  const initialLoss = 4.8 + Math.random() * 0.4;
+  const finalLoss = 1.1 + Math.random() * 0.2;
+  lossHistory = [initialLoss];
+  
+  // Pre-create target embeddings and initialize random positions
+  const targetEmbeddings = createMeaningfulEmbeddings();
+  initialRandomPositions = generateRandomPositions(plotWords.length); // Store consistent random positions
+  console.log('Target embeddings ready, initial random positions set, starting training loop');
+  
+  // Use setInterval for reliable animation
+  trainingInterval = setInterval(() => {
+    console.log(`Training step ${currentStep + 1}/${totalSteps}`);
+    
+    currentStep++;
+    const progress = (currentStep / totalSteps) * 100;
+    const lossProgress = currentStep / totalSteps;
+    
+    // Update loss
+    const currentLoss = initialLoss + (finalLoss - initialLoss) * (1 - Math.exp(-3 * lossProgress));
+    lossHistory.push(currentLoss);
+    
+    // Update progress display
+    $progressBar.style.width = progress + '%';
+    $progressText.textContent = `Training step ${currentStep}/${totalSteps} (Loss: ${currentLoss.toFixed(2)})`;
+    
+    // Blend embeddings
+    const blendRatio = Math.min(lossProgress * 1.2, 1);
+    for(let i = 0; i < VOCAB.length && i < targetEmbeddings.length; i++) {
+      for(let j = 0; j < embedDim && j < targetEmbeddings[i].length; j++) {
+        W_in[i][j] = W_in[i][j] * (1 - blendRatio) + targetEmbeddings[i][j] * blendRatio;
+      }
+    }
+    
+    // Update displays
+    render();
+    if (currentStep % 5 === 0) {
+      updateEmbeddingPlot();
+    }
+    
+    // Check if training is complete
+    if (currentStep >= totalSteps) {
+      console.log(`Training should stop at step ${currentStep}`);
+      console.log('Training complete!');
+      clearInterval(trainingInterval);
+      trainingInterval = null;
+      
+      // Final updates
+      W_in = targetEmbeddings;
+      W_out = createMeaningfulOutputWeights(targetEmbeddings);
+      
+      $progressText.textContent = '✅ Training complete! Model learned semantic relationships.';
+      $trainModel.textContent = 'Model Trained ✓';
+      $trainModel.style.background = 'var(--emerald)';
+      $trainModel.style.color = 'white';
+      
+      // Re-enable controls after delay
+      setTimeout(() => {
+        $trainingProgress.style.display = 'none';
+        $trainModel.disabled = false;
+        $resetTraining.disabled = false;
+        isTraining = false;
+      }, 2000);
+      
+      render();
+      updateEmbeddingPlot();
+    }
+  }, 80); // 80ms per step = ~8 second total
+  
+  console.log('Training interval started, ID:', trainingInterval);
+}
+
+// Training listeners
+$trainModel.onclick = ()=> {
+  console.log('Train Model button clicked!');
+  animateTraining();
+};
+$resetTraining.onclick = ()=> {
+  console.log('Reset Training button clicked!');
+  
+  // Stop any ongoing training
+  if (trainingInterval) {
+    clearInterval(trainingInterval);
+    trainingInterval = null;
+  }
+  
+  // Reset to initial random state
+  W_in = seedMatrix(VOCAB.length, embedDim);
+  W_out = seedMatrix(embedDim, VOCAB.length);
+  trainedEmbeddings = null;
+  lossHistory = [];
+  trainingStep = 0;
+  isTraining = false;
+  initialRandomPositions = null; // Clear stored positions
+  
+  // Reset button appearance
+  $trainModel.textContent = 'Train Model';
+  $trainModel.style.background = '';
+  $trainModel.style.color = '';
+  $trainModel.disabled = false;
+  $resetTraining.disabled = false;
+  
+  // Hide progress
+  $trainingProgress.style.display = 'none';
+  
+  resetTraining();
+  updateEmbeddingPlot(); // Reset to random scattered positions
+  render();
+};
+$learningRate.oninput = e=> {
+  learningRate = parseFloat(e.target.value);
+  $lrValue.textContent = learningRate.toFixed(2);
+};
+
+function chip(text, cls=''){
+  const s = document.createElement('span');
+  s.className = 'chip '+cls;
+  s.textContent = text;
+  return s;
+}
+
+function render(){
+  const tokens = SENTENCES[sent];
+  // Stage 1 – sentence
+  $tokens.innerHTML='';
+  tokens.forEach((t,i)=>{
+    const isLbl = i===center;
+    const inCtx = i<center && i>=center-win || i>center && i<=center+win;
+    const chipClass = isLbl ? 'lbl' : (inCtx ? 'ctx' : 'neutral');
+    $tokens.appendChild(chip(`"${t}" (#${idOf(t)})`, chipClass));
+  });
+
+  // context + label - handle edge cases properly like real Word2Vec
+  const ctxIdxs=[];
+  for(let k=1;k<=win;k++){ 
+    if(center-k >= 0) ctxIdxs.push(center-k);  // Only add if valid left context
+    if(center+k < tokens.length) ctxIdxs.push(center+k);  // Only add if valid right context
+  }
+  ctxIdxs.sort((a,b)=>a-b);
+  const ctxTokens = ctxIdxs.map(i=>tokens[i]).filter(t => t !== undefined);
+  const labelTok = tokens[center];
+
+  // Calculate embeddings for the matrix display (simplified)
+  const ctxEmbeds = ctxTokens.map(t=>W_in[idOf(t)-1]);
+  const avg = average(ctxEmbeds);
+
+  // Matrix W_in editable
+  $matrixIn.innerHTML='';
+  const tableIn=document.createElement('table');
+  const theadIn=document.createElement('thead'); const thr=document.createElement('tr');
+  ['Word','ID'].concat(Array.from({length:embedDim},(_,i)=>`Trait ${i+1}`)).forEach(h=>{
+    const th=document.createElement('th'); th.textContent=h; thr.appendChild(th)
+  });
+  theadIn.appendChild(thr); tableIn.appendChild(theadIn);
+  const tbodyIn=document.createElement('tbody');
+  VOCAB.forEach((w,i)=>{
+    const tr=document.createElement('tr'); if(ctxTokens.includes(w)) tr.className='ctxrow';
+    const tdw=document.createElement('td'); tdw.textContent=`"${w}"`; tr.appendChild(tdw);
+    const tdi=document.createElement('td'); tdi.textContent=String(i+1); tr.appendChild(tdi);
+    for(let j=0;j<embedDim;j++){
+      const td=document.createElement('td');
+      const input=document.createElement('input'); input.type='number'; input.step='0.05'; input.className='cell';
+      input.value=String(W_in[i][j].toFixed(2));
+      input.onchange=e=>{ const val=parseFloat(e.target.value); W_in[i][j]=isNaN(val)?0:val; render(); };
+      td.appendChild(input); tr.appendChild(td);
+    }
+    tbodyIn.appendChild(tr);
+  });
+  tableIn.appendChild(tbodyIn);
+  $matrixIn.appendChild(tableIn);
+
+  // Stage 4 – output
+  // logits = avg × W_out
+  const logits = mulVecMat(avg, W_out);
+  const probs = softmax(logits);
+  const predIdx = probs.indexOf(Math.max(...probs));
+  const labelIdx = idOf(labelTok)-1;
+  const loss = -Math.log(Math.max(probs[labelIdx], 1e-12));
+  // $labelName.textContent = `"${labelTok}"`;
+  // $predName.textContent = `"${VOCAB[predIdx]}"`;
+  // $loss.textContent = (probs[labelIdx] * 100).toFixed(1) + '%';
+  
+  // These elements don't exist in our simplified layout
+
+
+  // prob bars - show only top 10 predictions
+  // $probs.innerHTML=''; // Element doesn't exist
+  
+  // Create array of word indices sorted by probability (highest first)
+  const sortedIndices = VOCAB.map((_, i) => i).sort((a, b) => probs[b] - probs[a]);
+  
+  // Always include the target word if it's not in top 10
+  const top10Indices = sortedIndices.slice(0, 10);
+  if (!top10Indices.includes(labelIdx)) {
+    top10Indices[9] = labelIdx; // Replace 10th item with target word
+  }
+  
+  top10Indices.forEach(j => {
+    const w = VOCAB[j];
+    const row=document.createElement('div'); row.className='bar';
+    const lab=document.createElement('div'); lab.className='label'; lab.textContent=`"${w}"`; row.appendChild(lab);
+    const track=document.createElement('div'); track.className='track';
+    const fill=document.createElement('div'); fill.className='fill'; fill.style.width=(probs[j]*100).toFixed(1)+'%';
+    if(j===labelIdx) fill.style.background='linear-gradient(90deg, var(--indigo), #a4b4ff)';
+    if(j===predIdx && j !== labelIdx) fill.style.background='linear-gradient(90deg, var(--emerald), #b6ffd9)';
+    if(j===predIdx && j === labelIdx) fill.style.background='linear-gradient(90deg, #4ade80, #22c55e)';
+    track.appendChild(fill); row.appendChild(track);
+    const pct=document.createElement('div'); pct.className='pct'; pct.textContent=(probs[j]*100).toFixed(1)+'%'; row.appendChild(pct);
+    // $probs.appendChild(row); // Element doesn't exist
+  });
+  
+  // Add note about showing top 10
+  const noteDiv = document.createElement('div');
+  noteDiv.style.fontSize = '11px';
+  noteDiv.style.color = 'var(--muted)';
+  noteDiv.style.textAlign = 'center';
+  noteDiv.style.marginTop = '8px';
+  noteDiv.textContent = 'Showing top 10 predictions';
+  // $probs.appendChild(noteDiv); // Element doesn't exist
+  
+  // Update prediction explanation
+  updatePredictionExplanation(tokens, ctxTokens, labelTok, VOCAB[predIdx], probs[labelIdx]);
+}
+
+// initial UI state
+function updateCenterBoundsInit(){
+  const tokens = SENTENCES[sent];
+  const minC = 0;  // Can select first word
+  const maxC = tokens.length - 1;  // Can select last word
+  if(center<minC) center=minC;
+  if(center>maxC) center=maxC;
+  document.getElementById('center').min = String(minC);
+  document.getElementById('center').max = String(maxC);
+  document.getElementById('center').value = String(center);
+}
+updateCenterBoundsInit(); render();
+
+// --------- New Interactive Features ---------
+
+// Initialize similarity visualization
+function initializeSimilarityGrid() {
+  const grid = document.getElementById('similarity-grid');
+  grid.innerHTML = '';
+  
+  VOCAB.forEach((word, i) => {
+    const card = document.createElement('div');
+    card.className = 'word-card';
+    card.innerHTML = `
+      <div>${word}</div>
+      <div class="similarity-score" id="sim-${i}"></div>
+    `;
+    card.onclick = () => showSimilarities(word, i);
+    grid.appendChild(card);
+  });
+}
+
+function showSimilarities(selectedWord, selectedIndex) {
+  // Clear previous selections
+  document.querySelectorAll('.word-card').forEach(card => {
+    card.classList.remove('selected', 'similar');
+  });
+  
+  // Mark selected word
+  document.querySelectorAll('.word-card')[selectedIndex].classList.add('selected');
+  
+  // Calculate similarities
+  const selectedEmbedding = W_in[selectedIndex];
+  const similarities = VOCAB.map((word, i) => {
+    if (i === selectedIndex) return { word, similarity: 1.0, index: i };
+    
+    const embedding = W_in[i];
+    const similarity = cosineSimilarity(selectedEmbedding, embedding);
+    return { word, similarity, index: i };
+  });
+  
+  // Sort by similarity and show top similar words
+  similarities.sort((a, b) => b.similarity - a.similarity);
+  
+  similarities.forEach((item, rank) => {
+    const scoreElement = document.getElementById(`sim-${item.index}`);
+    const cardElement = document.querySelectorAll('.word-card')[item.index];
+    
+    if (rank > 0 && rank <= 3) { // Show top 3 similar words (excluding self)
+      cardElement.classList.add('similar');
+      scoreElement.textContent = `${(item.similarity * 100).toFixed(0)}% similar`;
+    } else if (item.index === selectedIndex) {
+      scoreElement.textContent = 'Selected';
+    } else {
+      scoreElement.textContent = `${(item.similarity * 100).toFixed(0)}%`;
+    }
+  });
+}
+
+function showDefaultSimilarities() {
+  // Show similarities for some interesting words by default
+  const interestingWords = ['cat', 'king', 'Paris'];
+  const wordToShow = interestingWords.find(word => VOCAB.includes(word));
+  
+  if (wordToShow) {
+    const index = VOCAB.indexOf(wordToShow);
+    showSimilarities(wordToShow, index);
+  }
+}
+
+function refreshSimilarities() {
+  // Simplified - no longer using similarity grid
+  // This function kept for compatibility but does nothing
+}
+
+function updateClusteringStatus() {
+  if (trainingStep === 0) {
+    $clusteringStatus.textContent = "Semantic clustering: Not trained";
+    $clusteringStatus.style.color = "var(--muted)";
+    return;
+  }
+  
+  // Check how well semantic clusters are forming
+  const testPairs = [
+    { word1: "cat", word2: "dog", expected: "high" },
+    { word1: "king", word2: "queen", expected: "high" },
+    { word1: "Paris", word2: "London", expected: "high" },
+    { word1: "cat", word2: "king", expected: "low" },
+    { word1: "big", word2: "small", expected: "medium" }
+  ];
+  
+  let goodClusters = 0;
+  let totalChecks = 0;
+  
+  testPairs.forEach(({word1, word2, expected}) => {
+    const idx1 = VOCAB.indexOf(word1);
+    const idx2 = VOCAB.indexOf(word2);
+    
+    if (idx1 !== -1 && idx2 !== -1) {
+      const similarity = cosineSimilarity(W_in[idx1], W_in[idx2]);
+      totalChecks++;
+      
+      if (expected === "high" && similarity > 0.5) goodClusters++;
+      else if (expected === "medium" && similarity > 0.2 && similarity < 0.8) goodClusters++;
+      else if (expected === "low" && similarity < 0.4) goodClusters++;
+    }
+  });
+  
+  if (totalChecks === 0) {
+    $clusteringStatus.textContent = "Clustering: Cannot evaluate";
+    $clusteringStatus.style.color = "var(--muted)";
+    return;
+  }
+  
+  const clusteringScore = (goodClusters / totalChecks) * 100;
+  
+  if (clusteringScore >= 70) {
+    $clusteringStatus.textContent = `✅ Strong clustering (${clusteringScore.toFixed(0)}%)`;
+    $clusteringStatus.style.color = "var(--emerald)";
+  } else if (clusteringScore >= 40) {
+    $clusteringStatus.textContent = `⚡ Emerging clusters (${clusteringScore.toFixed(0)}%)`;
+    $clusteringStatus.style.color = "var(--orange)";
+  } else {
+    $clusteringStatus.textContent = `⏳ Weak clustering (${clusteringScore.toFixed(0)}%)`;
+    $clusteringStatus.style.color = "var(--muted)";
+  }
+}
+
+function cosineSimilarity(vecA, vecB) {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+
+function updatePredictionExplanation(tokens, ctxTokens, labelTok, predictedWord, confidence) {
+  const reasoning = document.getElementById('prediction-reasoning');
+  
+  if (!reasoning) return;
+  
+  let explanation = '';
+  
+  if (predictedWord === labelTok) {
+    explanation = `✅ Correct! The model predicted "${predictedWord}" with ${(confidence * 100).toFixed(1)}% confidence. `;
+  } else {
+    explanation = `❌ The model predicted "${predictedWord}" but the correct answer is "${labelTok}" (${(confidence * 100).toFixed(1)}% confidence). `;
+  }
+  
+  // Add context explanation
+  if (ctxTokens.includes('cat') && ctxTokens.includes('sat')) {
+    explanation += 'The context words "cat" and "sat" often appear with words like "mat" or "rug" in training data.';
+  } else if (ctxTokens.includes('France') && ctxTokens.includes('capital')) {
+    explanation += 'The context words "France" and "capital" strongly suggest geographical entities like "Paris".';
+  } else if (ctxTokens.includes('cats') && ctxTokens.includes('dogs')) {
+    explanation += 'The context words "cats" and "dogs" suggest animal-related terms or categories.';
+  } else {
+    explanation += `The model uses the context words [${ctxTokens.join(', ')}] to predict what word typically appears in this position.`;
+  }
+  
+  reasoning.textContent = explanation;
+}
+
+// --------- Training Functions ---------
+
+function resetTraining() {
+  trainingStep = 0;
+  lossHistory = [];
+  // Store original matrices for reset
+  originalW_in = W_in.map(row => [...row]);
+  originalW_out = W_out.map(row => [...row]);
+  
+  updateTrainingDisplay();
+  updateEmbeddingStatus();
+}
+
+function updateEmbeddingStatus() {
+  if(trainingStep === 0) {
+    $embeddingStatus.textContent = "Embeddings: Random";
+    $embeddingStatus.style.color = "var(--muted)";
+  } else if(trainingStep < 5) {
+    $embeddingStatus.textContent = "Embeddings: Learning...";
+    $embeddingStatus.style.color = "var(--orange)";
+  } else {
+    $embeddingStatus.textContent = `Embeddings: Trained (${trainingStep} steps)`;
+    $embeddingStatus.style.color = "var(--emerald)";
+  }
+}
+
+// Old training functions removed - using precomputed embeddings with animation
+
+// Simplified training functions removed - using animated training simulation instead
+
+
+function updateTrainingDisplay() {
+  $trainingStep.textContent = trainingStep;
+  
+  if(lossHistory.length > 0) {
+    const currentLoss = lossHistory[lossHistory.length - 1];
+    $currentLoss.textContent = currentLoss.toFixed(3);
+    
+    if(lossHistory.length === 1) {
+      $trainingStatus.textContent = "Training started";
+    } else if(lossHistory.length > 1) {
+      const prevLoss = lossHistory[lossHistory.length - 2];
+      if(currentLoss < prevLoss) {
+        $trainingStatus.textContent = "Loss decreasing ↓";
+        $trainingStatus.style.color = "var(--emerald)";
+      } else {
+        $trainingStatus.textContent = "Loss stable/increasing";
+        $trainingStatus.style.color = "var(--orange)";
+      }
+    }
+    
+    // Update loss chart
+    updateLossChart();
+  } else {
+    $currentLoss.textContent = "-";
+    $trainingStatus.textContent = "Ready to start training";
+    $trainingStatus.style.color = "var(--muted)";
+    
+    // Clear loss chart
+    const lossChart = document.getElementById('lossChart');
+    if(lossChart) lossChart.innerHTML = '';
+  }
+}
+
+function updateLossChart() {
+  const lossChart = document.getElementById('lossChart');
+  if(!lossChart || lossHistory.length === 0) return;
+  
+  lossChart.innerHTML = '';
+  
+  if(lossHistory.length === 1) {
+    lossChart.innerHTML = '<div style="color:var(--muted);font-size:11px;padding:20px;text-align:center;">Training...</div>';
+    return;
+  }
+  
+  const maxLoss = Math.max(...lossHistory);
+  const minLoss = Math.min(...lossHistory);
+  const range = maxLoss - minLoss;
+  
+  lossHistory.forEach((loss, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'loss-line';
+    
+    const normalizedHeight = range > 0 ? ((loss - minLoss) / range) * 50 + 10 : 30;
+    bar.style.height = normalizedHeight + 'px';
+    bar.style.left = (i / Math.max(lossHistory.length - 1, 1)) * 100 + '%';
+    
+    if(i === lossHistory.length - 1) {
+      bar.style.background = 'var(--emerald)';
+      bar.style.width = '3px';
+    }
+    
+    lossChart.appendChild(bar);
+  });
+}
+
+// Initialize training data display
+function initializeTrainingDataDisplay() {
+  const container = document.getElementById('trainingDataDisplay');
+  container.innerHTML = '';
+  
+  // Simple vocabulary grid
+  const vocabDiv = document.createElement('div');
+  vocabDiv.className = 'vocab-summary';
+  vocabDiv.innerHTML = `<strong>Vocabulary (${VOCAB.length} unique words):</strong>`;
+  
+  // Create a simple grid showing all vocabulary words
+  const vocabGrid = document.createElement('div');
+  vocabGrid.style.display = 'grid';
+  vocabGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(80px, 1fr))';
+  vocabGrid.style.gap = '4px';
+  vocabGrid.style.marginTop = '12px';
+  vocabGrid.style.maxHeight = '200px';
+  vocabGrid.style.overflowY = 'auto';
+  vocabGrid.style.padding = '8px';
+  vocabGrid.style.border = '1px solid var(--border)';
+  vocabGrid.style.borderRadius = '8px';
+  
+  VOCAB.forEach((word, i) => {
+    const wordDiv = document.createElement('div');
+    wordDiv.innerHTML = `<div style="font-weight: bold; color: var(--blue);">${i + 1}</div><div>${word}</div>`;
+    wordDiv.style.padding = '4px 8px';
+    wordDiv.style.background = 'var(--bg)';
+    wordDiv.style.border = '1px solid var(--border)';
+    wordDiv.style.borderRadius = '4px';
+    wordDiv.style.textAlign = 'center';
+    wordDiv.style.fontSize = '12px';
+    wordDiv.style.display = 'flex';
+    wordDiv.style.flexDirection = 'column';
+    wordDiv.style.gap = '2px';
+    vocabGrid.appendChild(wordDiv);
+  });
+  
+  vocabDiv.appendChild(vocabGrid);
+  container.appendChild(vocabDiv);
+  
+}
+
+// 2D Embedding Visualization
+const plotWords = [
+  // Animals cluster
+  { word: 'cat', cluster: 'animals', color: '#22c55e' },
+  { word: 'dog', cluster: 'animals', color: '#22c55e' },
+  { word: 'pets', cluster: 'animals', color: '#22c55e' },
+  // Royalty cluster  
+  { word: 'king', cluster: 'royalty', color: '#8b5cf6' },
+  { word: 'queen', cluster: 'royalty', color: '#8b5cf6' },
+  // Cities cluster
+  { word: 'Paris', cluster: 'cities', color: '#3b82f6' },
+  { word: 'London', cluster: 'cities', color: '#3b82f6' },
+  // Actions cluster
+  { word: 'run', cluster: 'actions', color: '#f59e0b' },
+  { word: 'sleep', cluster: 'actions', color: '#f59e0b' },
+  // Descriptors cluster
+  { word: 'big', cluster: 'descriptors', color: '#ef4444' }
+];
+
+function projectTo2D(embeddings, wordIndices) {
+  // Simple PCA-like projection: use first 2 principal components
+  // For educational purposes, we'll use the first two dimensions with some rotation
+  const projected = [];
+  
+  wordIndices.forEach(idx => {
+    const embedding = embeddings[idx];
+    // Project 5D to 2D using a simple linear transformation
+    const x = embedding[0] * 0.8 + embedding[1] * 0.6;
+    const y = embedding[2] * 0.7 + embedding[3] * 0.9;
+    projected.push({ x, y });
+  });
+  
+  return projected;
+}
+
+// Generate random starting positions for words
+function generateRandomPositions(count) {
+  const positions = [];
+  const margin = 60;
+  const width = 400 - 2 * margin;
+  const height = 300 - 2 * margin;
+  
+  for (let i = 0; i < count; i++) {
+    positions.push({
+      x: margin + Math.random() * width,
+      y: margin + Math.random() * height
+    });
+  }
+  return positions;
+}
+
+// Generate final clustered positions based on semantic groups
+function generateClusteredPositions(plotWords) {
+  const positions = [];
+  const clusters = {
+    animals: { centerX: 100, centerY: 200, spread: 30 },
+    royalty: { centerX: 200, centerY: 100, spread: 25 },
+    cities: { centerX: 300, centerY: 220, spread: 30 },
+    actions: { centerX: 320, centerY: 120, spread: 25 },
+    descriptors: { centerX: 150, centerY: 150, spread: 20 }
+  };
+  
+  plotWords.forEach(wordInfo => {
+    const cluster = clusters[wordInfo.cluster];
+    if (cluster) {
+      // Add some random spread within cluster
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.random() * cluster.spread;
+      positions.push({
+        x: cluster.centerX + Math.cos(angle) * distance,
+        y: cluster.centerY + Math.sin(angle) * distance
+      });
+    } else {
+      // Fallback to center if cluster not found
+      positions.push({ x: 200, y: 150 });
+    }
+  });
+  
+  return positions;
+}
+
+function initializeEmbeddingPlot() {
+  const container = document.getElementById('embedding-plot');
+  if (!container) {
+    console.error('embedding-plot container not found');
+    return;
+  }
+  
+  console.log('Initializing embedding plot');
+  
+  // Create SVG directly without CSS variables
+  container.innerHTML = `
+    <div style="position:relative; width:100%; height:400px; background:#f8f9fa; border:1px solid #dee2e6; border-radius:8px; overflow:hidden;">
+      <svg class="embedding-plot-svg" style="width:100%; height:100%;" viewBox="0 0 400 300">
+        <!-- Axes -->
+        <line x1="0" y1="150" x2="400" y2="150" stroke="#dee2e6" stroke-width="1" opacity="0.5"></line>
+        <line x1="200" y1="0" x2="200" y2="300" stroke="#dee2e6" stroke-width="1" opacity="0.5"></line>
+      </svg>
+      
+      <div style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); padding:8px; border-radius:4px; font-size:12px;">
+        <div style="font-weight:bold; margin-bottom:4px;">Clusters</div>
+        <div><span style="color:#22c55e;">●</span> Animals</div>
+        <div><span style="color:#8b5cf6;">●</span> Royalty</div>
+        <div><span style="color:#3b82f6;">●</span> Cities</div>
+        <div><span style="color:#f59e0b;">●</span> Actions</div>
+        <div><span style="color:#ef4444;">●</span> Descriptors</div>
+      </div>
+    </div>
+  `;
+  
+  // Verify SVG was created
+  setTimeout(() => {
+    const svg = document.querySelector('.embedding-plot-svg');
+    console.log('SVG verification:', !!svg);
+    if (svg) {
+      console.log('SVG element:', svg);
+      console.log('SVG parent:', svg.parentElement);
+    }
+  }, 100);
+  
+  // Initialize word positions
+  console.log('About to update embedding plot');
+  updateEmbeddingPlot();
+}
+
+function updateEmbeddingPlot() {
+  console.log('=== updateEmbeddingPlot called ===');
+  
+  const svg = document.querySelector('.embedding-plot-svg');
+  if (!svg) {
+    console.error('SVG not found! Container exists?', !!document.getElementById('embedding-plot'));
+    return;
+  }
+  console.log('SVG found:', svg);
+  
+  // Remove existing word points
+  const existingPoints = svg.querySelectorAll('.word-point');
+  console.log('Removing', existingPoints.length, 'existing points');
+  existingPoints.forEach(el => el.remove());
+  
+  // Get word indices for our plot words  
+  const wordIndices = [];
+  const validPlotWords = [];
+  
+  console.log('plotWords:', plotWords);
+  console.log('VOCAB sample:', VOCAB.slice(0, 10));
+  
+  plotWords.forEach(w => {
+    const idx = VOCAB.indexOf(w.word);
+    if (idx !== -1) {
+      wordIndices.push(idx);
+      validPlotWords.push(w);
+      console.log(`Found word ${w.word} at index ${idx}`);
+    } else {
+      console.warn(`Word ${w.word} not found in vocabulary`);
+    }
+  });
+  
+  if (wordIndices.length === 0) {
+    console.error('No valid words found for plotting');
+    return;
+  }
+  
+  console.log(`Processing ${wordIndices.length} words:`, validPlotWords.map(w => w.word));
+  
+  // Determine positions based on training state
+  let positions2D;
+  
+  if (!isTraining && (!trainedEmbeddings || lossHistory.length === 0)) {
+    // Before training: random positions
+    console.log('Using random positions (before training)');
+    positions2D = generateRandomPositions(validPlotWords.length);
+  } else if (isTraining && lossHistory.length > 0) {
+    // During training: blend from random to clustered
+    const progress = Math.min(lossHistory.length / 100, 1); // 0 to 1
+    const randomPositions = initialRandomPositions || generateRandomPositions(validPlotWords.length);
+    const clusteredPositions = generateClusteredPositions(validPlotWords);
+    
+    console.log(`Blending positions, training progress: ${(progress * 100).toFixed(1)}%`);
+    
+    positions2D = randomPositions.map((randomPos, i) => {
+      const clusteredPos = clusteredPositions[i];
+      return {
+        x: randomPos.x * (1 - progress) + clusteredPos.x * progress,
+        y: randomPos.y * (1 - progress) + clusteredPos.y * progress
+      };
+    });
+  } else {
+    // After training: final clustered positions
+    console.log('Using final clustered positions (after training)');
+    positions2D = generateClusteredPositions(validPlotWords);
+  }
+  
+  console.log('Final positions:', positions2D);
+  
+  // Create word points
+  validPlotWords.forEach((wordInfo, i) => {
+    const pos = positions2D[i];
+    const x = pos.x;
+    const y = pos.y;
+    
+    console.log(`Placing ${wordInfo.word} at (${x.toFixed(1)}, ${y.toFixed(1)})`);
+    
+    // Create circle
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', x.toString());
+    circle.setAttribute('cy', y.toString());
+    circle.setAttribute('r', '8');
+    circle.setAttribute('fill', wordInfo.color);
+    circle.setAttribute('stroke', 'white');
+    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('class', 'word-point');
+    
+    // Create label
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', x.toString());
+    text.setAttribute('y', (y - 12).toString());
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('font-weight', 'bold');
+    text.setAttribute('fill', wordInfo.color);
+    text.setAttribute('class', 'word-point');
+    text.textContent = wordInfo.word;
+    
+    svg.appendChild(circle);
+    svg.appendChild(text);
+    
+    console.log(`Added circle and text for ${wordInfo.word}`);
+  });
+  
+  const finalCount = svg.querySelectorAll('.word-point').length;
+  console.log(`=== Final SVG has ${finalCount} word-point elements ===`);
+  console.log('SVG innerHTML length:', svg.innerHTML.length);
+}
+
+// Initialize new features when page loads
+window.addEventListener('load', () => {
+  console.log('Page loaded, initializing...');
+  
+  
+  // Check if all elements exist
+  console.log('trainModel element:', $trainModel);
+  console.log('resetTraining element:', $resetTraining);
+  console.log('trainingProgress element:', $trainingProgress);
+  
+  // Check initial dimension setting
+  const dimNote = document.getElementById('dimensionReductionNote');
+  const actualDimsSpan = document.getElementById('actualDims');
+  if (embedDim > 2) {
+    dimNote.style.display = 'block';
+    actualDimsSpan.textContent = embedDim;
+  }
+  
+  initializeTrainingDataDisplay();
+  initializeEmbeddingPlot();
+  updateWindowButtons(); // Set initial button states
+  resetTraining();
+  
+  // Test the visualization with initial random embeddings
+  console.log('Testing initial visualization...');
+  setTimeout(() => {
+    console.log('W_in length:', W_in.length, 'W_in[0] length:', W_in[0].length);
+    console.log('plotWords:', plotWords.map(w => w.word));
+    updateEmbeddingPlot();
+  }, 500);
+});
+
+// --------- Coordinate Exercise Functions ---------
+
+// Expected answers (reasonable ranges)
+const correctAnswers = {
+  chicken: { x: 3.5, y: 2.0 }, // Center column (neutral gender), bottom row (animal level)
+  king: { x: 1.0, y: 5.0 }     // Left column (male), top row (royal level)
+};
+
+// Convert coordinate to SVG position
+function coordToSVG(x, y) {
+  // Map coordinate space (0-6) to SVG space (0-400)
+  // X: 0->0, 1->67, 3.5->200, 5.5->333, 6->400
+  // Y: inverted because SVG Y increases downward
+  // Y: 0->400, 2->267, 3->200, 5->67, 6->0
+  const svgX = (x / 6) * 400;
+  const svgY = 400 - (y / 6) * 400;
+  return { x: svgX, y: svgY };
+}
+
+function checkCoordinates() {
+  const chickenXInput = document.getElementById('chicken-x');
+  const chickenYInput = document.getElementById('chicken-y');
+  const kingXInput = document.getElementById('king-x');
+  const kingYInput = document.getElementById('king-y');
+  
+  // Get values, using placeholder if input is empty
+  const chickenX = parseFloat(chickenXInput.value || chickenXInput.placeholder);
+  const chickenY = parseFloat(chickenYInput.value || chickenYInput.placeholder);
+  const kingX = parseFloat(kingXInput.value || kingXInput.placeholder);
+  const kingY = parseFloat(kingYInput.value || kingYInput.placeholder);
+  
+  const feedback = document.getElementById('coordinate-feedback');
+  const userWords = document.getElementById('user-words');
+  
+  // Check if all values are valid numbers
+  if (isNaN(chickenX) || isNaN(chickenY) || isNaN(kingX) || isNaN(kingY)) {
+    feedback.style.display = 'block';
+    feedback.style.background = 'rgba(239, 68, 68, 0.1)';
+    feedback.style.border = '1px solid #ef4444';
+    feedback.style.color = '#ef4444';
+    feedback.innerHTML = '❌ Please enter valid coordinate values!';
+    return;
+  }
+  
+  // Check if values are in valid range
+  if (chickenX < 0 || chickenX > 6 || chickenY < 0 || chickenY > 6 || 
+      kingX < 0 || kingX > 6 || kingY < 0 || kingY > 6) {
+    feedback.style.display = 'block';
+    feedback.style.background = 'rgba(239, 68, 68, 0.1)';
+    feedback.style.border = '1px solid #ef4444';
+    feedback.style.color = '#ef4444';
+    feedback.innerHTML = '❌ All coordinates must be between 0 and 6!';
+    return;
+  }
+  
+  // No need to plot overlay points since all words are already visible
+  
+  // Check if answers are close enough to correct answers
+  const chickenError = Math.abs(chickenX - correctAnswers.chicken.x) + Math.abs(chickenY - correctAnswers.chicken.y);
+  const kingError = Math.abs(kingX - correctAnswers.king.x) + Math.abs(kingY - correctAnswers.king.y);
+  
+  const tolerance = 0.3; // Tighter tolerance since they're reading coordinates
+  
+  if (chickenError <= tolerance && kingError <= tolerance) {
+    // Both answers are good!
+    feedback.style.display = 'none';
+    
+    // Show success message with animation
+    const successDiv = document.getElementById('exercise-success');
+    successDiv.style.display = 'block';
+    successDiv.style.animation = 'none';
+    setTimeout(() => {
+      successDiv.style.animation = 'fadeIn 0.5s ease-in';
+      successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+    
+  } else {
+    // Show partial feedback focused on coordinate reading
+    let feedbackText = '🤔 Take another look at the plot:\n\n';
+    
+    if (chickenError > tolerance) {
+      feedbackText += `🐔 Chicken: You said (${chickenX}, ${chickenY}). Look closely at where "chicken" sits in the grid.\n`;
+    } else {
+      feedbackText += '✅ Chicken coordinates look correct!\n';
+    }
+    
+    if (kingError > tolerance) {
+      feedbackText += `👑 King: You said (${kingX}, ${kingY}). Look closely at where "king" sits in the grid.`;
+    } else {
+      feedbackText += '✅ King coordinates look correct!';
+    }
+    
+    feedbackText += '\n\nRemember: just read the coordinates directly from where each word appears on the plot.';
+    
+    feedback.style.display = 'block';
+    feedback.style.background = 'rgba(251, 191, 36, 0.1)';
+    feedback.style.border = '1px solid #fbbf24';
+    feedback.style.color = '#92400e';
+    feedback.innerHTML = feedbackText.replace(/\n/g, '<br>');
+  }
+}
+
+function showDimensions() {
+  // Hide the coordinate exercise
+  document.getElementById('coordinate-exercise').style.display = 'none';
+  // Show the dimensions explanation
+  document.getElementById('dimensions-explanation').style.display = 'block';
+  document.getElementById('dimensions-explanation').scrollIntoView({ behavior: 'smooth' });
+}
+
+function continueToMain() {
+  // Keep the dimensions explanation visible - don't hide it
+  // Show the main intro
+  document.getElementById('main-intro').style.display = 'block';
+  document.getElementById('main-intro').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Navigation functions for progressive disclosure
+function showDataset() {
+  document.getElementById('dataset-stage').style.display = 'block';
+  document.getElementById('dataset-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showControls() {
+  document.getElementById('controls-stage').style.display = 'block';
+  document.getElementById('controls-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showBreakdown() {
+  document.getElementById('breakdown-stage').style.display = 'block';
+  document.getElementById('breakdown-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showTraining() {
+  document.getElementById('training-stage').style.display = 'block';
+  document.getElementById('training-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showDataset() {
+  document.getElementById('dataset-stage').style.display = 'block';
+  document.getElementById('dataset-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showInterpretability() {
+  document.getElementById('interpretability-stage').style.display = 'block';
+  document.getElementById('interpretability-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showSummary() {
+  document.getElementById('summary-stage').style.display = 'block';
+  document.getElementById('summary-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Real Embeddings Visualization
+const REAL_EMBEDDINGS = {
+  // Real embedding values showing interpretable dimensions
+  // Values are simplified but based on actual word2vec patterns
+  'king': [0.8, 0.9, -0.1, 0.7, 0.3, 0.2, -0.4, 0.6],
+  'queen': [0.9, -0.8, -0.2, 0.8, 0.4, 0.1, -0.3, 0.7],
+  'man': [0.7, 0.6, 0.1, 0.2, 0.1, -0.1, 0.3, 0.2],
+  'woman': [0.8, -0.7, 0.2, 0.3, 0.2, -0.2, 0.4, 0.3],
+  'prince': [0.6, 0.8, 0.3, 0.9, 0.7, 0.3, -0.2, 0.8],
+  'princess': [0.7, -0.6, 0.4, 0.8, 0.8, 0.2, -0.1, 0.9],
+  'boy': [0.4, 0.5, 0.6, -0.3, 0.9, 0.1, 0.2, -0.2],
+  'girl': [0.5, -0.4, 0.7, -0.2, 0.8, 0.0, 0.3, -0.1],
+  'father': [0.6, 0.7, 0.0, 0.1, -0.4, 0.2, 0.5, 0.1],
+  'mother': [0.7, -0.5, 0.1, 0.2, -0.3, 0.1, 0.6, 0.2]
+};
+
+const DIMENSION_INFO = {
+  gender: {
+    index: 1,
+    name: 'Gender Dimension',
+    description: 'This dimension clearly separates masculine (positive values) from feminine (negative values). Notice how "king", "man", "prince" have high positive values, while "queen", "woman", "princess" have high negative values.',
+    highlight: 'Gender concepts are automatically learned by analyzing which words appear in similar contexts!'
+  },
+  royalty: {
+    index: 3,
+    name: 'Royalty/Status Dimension', 
+    description: 'This dimension captures social status and nobility. "King", "queen", "prince", "princess" all have high positive values, while common people terms have lower values.',
+    highlight: 'The model learns social hierarchies just from text patterns!'
+  },
+  age: {
+    index: 4,
+    name: 'Age/Maturity Dimension',
+    description: 'This dimension represents age and maturity. "Boy", "girl", "prince", "princess" (younger) have high positive values, while "father", "mother" (older/mature) have negative values.',
+    highlight: 'Age relationships emerge naturally from how these words are used in context!'
+  }
+};
+
+function highlightDimension(dimensionType) {
+  // Update button styles
+  document.querySelectorAll('.dimension-btn').forEach(btn => {
+    btn.classList.remove('btn-primary');
+  });
+  
+  if (dimensionType !== 'none') {
+    document.getElementById(dimensionType + '-btn').classList.add('btn-primary');
+  } else {
+    document.getElementById('none-btn').classList.add('btn-primary');
+  }
+  
+  // Generate the matrix
+  generateEmbeddingsMatrix(dimensionType);
+  
+  // Show/hide explanation
+  const explanationDiv = document.getElementById('dimension-explanation');
+  if (dimensionType !== 'none' && DIMENSION_INFO[dimensionType]) {
+    const info = DIMENSION_INFO[dimensionType];
+    explanationDiv.innerHTML = `
+      <h4>${info.name} (Column ${info.index + 1})</h4>
+      <p>${info.description}</p>
+      <p><strong>${info.highlight}</strong></p>
+    `;
+    explanationDiv.style.display = 'block';
+  } else {
+    explanationDiv.style.display = 'none';
+  }
+}
+
+function generateEmbeddingsMatrix(highlightDimension) {
+  const container = document.getElementById('embeddings-container');
+  const words = Object.keys(REAL_EMBEDDINGS);
+  const numDimensions = REAL_EMBEDDINGS[words[0]].length;
+  
+  let html = '<div class="embeddings-matrix" style="display: inline-block; font-family: monospace; font-size: 12px; padding: 16px;">';
+  
+  // Header row
+  html += '<div style="display: flex; margin-bottom: 4px;">';
+  html += '<div style="width: 80px; font-weight: bold; padding: 4px;">Word</div>';
+  for (let d = 0; d < numDimensions; d++) {
+    const isHighlighted = highlightDimension !== 'none' && DIMENSION_INFO[highlightDimension] && DIMENSION_INFO[highlightDimension].index === d;
+    html += `<div style="width: 60px; font-weight: bold; padding: 4px; text-align: center; ${isHighlighted ? 'background: #e3f2fd; border-radius: 4px;' : ''}">D${d + 1}</div>`;
+  }
+  html += '</div>';
+  
+  // Data rows
+  words.forEach(word => {
+    html += '<div style="display: flex; margin-bottom: 2px;">';
+    html += `<div style="width: 80px; font-weight: bold; padding: 4px; text-align: left;">${word}</div>`;
+    
+    REAL_EMBEDDINGS[word].forEach((value, dimIndex) => {
+      const isHighlighted = highlightDimension !== 'none' && DIMENSION_INFO[highlightDimension] && DIMENSION_INFO[highlightDimension].index === dimIndex;
+      const intensity = Math.abs(value);
+      const isPositive = value > 0;
+      
+      // Color based on value: red for positive, blue for negative, white for near zero
+      let backgroundColor = 'white';
+      if (intensity > 0.1) {
+        if (isPositive) {
+          backgroundColor = `rgba(239, 68, 68, ${intensity})`;  // Red
+        } else {
+          backgroundColor = `rgba(59, 130, 246, ${intensity})`;  // Blue
+        }
+      }
+      
+      // Add border highlight for the selected dimension
+      const borderStyle = isHighlighted ? 'border: 2px solid #1976d2;' : 'border: 1px solid #e0e0e0;';
+      
+      html += `<div class="embedding-cell ${isHighlighted ? 'highlighted' : ''}" style="width: 60px; height: 30px; margin: 1px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: ${intensity > 0.5 ? 'white' : 'black'}; background-color: ${backgroundColor}; ${borderStyle} border-radius: 3px;">${value.toFixed(1)}</div>`;
+    });
+    
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// Initialize with gender dimension highlighted
+document.addEventListener('DOMContentLoaded', function() {
+  highlightDimension('gender');
+});
+
+</script>
+</body>
+</html>

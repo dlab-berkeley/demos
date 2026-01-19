@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>D-Lab - Web Scraping Tutorial</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f8f9fa;
+    --muted:#6c757d;
+    --text:#212529;
+    --blue:#0d6efd;
+    --indigo:#6610f2;
+    --emerald:#198754;
+    --orange:#fd7e14;
+    --border:#dee2e6;
+    --red:#dc3545;
+    --yellow:#ffc107;
+    --purple:#6f42c1;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text);
+    line-height: 1.6;
+  }
+  .wrap{max-width:1200px;margin:32px auto;padding:0 20px}
+  .course-header{text-align:center;margin-bottom:20px;padding:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)}
+  .course-logo{width:180px;height:auto;margin-bottom:8px}
+  .course-title{font-size:1.2em;color:var(--blue);margin:0;font-weight:600}
+  h1{font-size:32px;margin:0 0 12px; text-align: center;}
+  .intro{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px;
+    margin-bottom: 24px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .intro h2{margin:0 0 12px; color:var(--blue);}
+  .intro p{margin:12px 0; font-size: 16px;}
+  .goal{
+    background:rgba(253,126,20,.1); border:1px solid rgba(253,126,20,.3); 
+    border-radius:12px; padding:16px; margin:16px 0;
+  }
+  .goal h3{margin:0 0 8px; color:var(--orange);}
+  p.lead{color:var(--muted);margin:0 0 24px; font-size: 18px; text-align: center;}
+  
+  .stage{
+    border:1px solid var(--border); border-radius:16px; padding:24px; 
+    background:var(--bg); margin-bottom:24px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .stage h2{margin:0 0 12px; font-size:20px; color:var(--blue);}
+  .stage .explanation{
+    font-size:15px; color:var(--text); margin-bottom:16px; 
+    background:rgba(13,110,253,.08); padding:12px 16px; border-radius:12px;
+    border-left: 4px solid var(--blue);
+  }
+  
+  .analogy{
+    background:rgba(102,16,242,.08); border:1px solid rgba(102,16,242,.3); 
+    border-radius:12px; padding:16px; margin:16px 0;
+  }
+  .analogy h4{margin:0 0 8px; color:var(--indigo); font-size: 14px;}
+  
+  .step-number{
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; background: var(--blue);
+    color: white; font-weight: bold; font-size: 12px; margin-right: 8px;
+  }
+  
+  /* View toggle buttons */
+  .view-toggle{display:flex; gap:10px; margin-bottom:20px;}
+  
+  /* Website container */
+  .website-container{
+    border:2px solid var(--border); border-radius:12px; padding:20px;
+    background:white; margin-bottom:30px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  
+  #frontend-view{padding:20px; background:var(--panel); border-radius:8px;}
+  
+  .sample-site{font-family:Georgia,serif;}
+  .sample-site h1{color:#2c3e50; margin-bottom:10px; text-align:left; font-size:28px;}
+  .sample-site .price{color:var(--emerald); font-size:24px; font-weight:bold; margin:10px 0;}
+  .sample-site .description{color:#666; margin:15px 0;}
+  .sample-site .reviews{margin-top:20px; padding-top:20px; border-top:1px solid var(--border);}
+  .sample-site .review{
+    background:white; padding:10px; margin:10px 0; border-radius:5px;
+    box-shadow:0 1px 3px rgba(0,0,0,.1);
+  }
+  .sample-site .reviewer{font-weight:bold; color:#34495e;}
+  .sample-site .rating{color:var(--yellow);}
+  
+  #code-view{
+    display:none; background:#1a1a1a; color:#f8f8f2; padding:20px;
+    border-radius:8px; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas;
+    font-size:14px; overflow-x:auto; white-space:pre;
+  }
+  
+  .code-highlight{
+    background:var(--yellow); color:#1a1a1a; padding:2px 4px;
+    border-radius:3px; animation:pulse 1s ease-in-out;
+  }
+  
+  @keyframes pulse{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.05);}
+    100%{transform:scale(1);}
+  }
+  
+  /* Buttons */
+  .btn{
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
+    border-radius: 12px; border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); cursor: pointer; font-size: 14px; margin: 4px;
+    transition: all 0.3s ease; text-decoration: none;
+  }
+  .btn:hover{background: var(--panel); transform: translateY(-1px);}
+  .btn-primary{background: var(--blue); color: white; border-color: var(--blue);}
+  .btn-primary:hover{background: #0b5ed7; border-color: #0b5ed7;}
+  .btn.active{background: var(--purple); color: white; border-color: var(--purple);}
+  
+  /* Action buttons grid */
+  .action-buttons{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;}
+  
+  /* Code display */
+  .code-display{
+    background:#1a1a1a; color:#f8f8f2; padding:15px; border-radius:8px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas; font-size:13px;
+    margin:10px 0; white-space:pre-wrap; border:1px solid var(--border);
+  }
+  
+  /* Result display */
+  .result-display{
+    background:rgba(25,135,84,.1); border:1px solid var(--emerald);
+    padding:15px; border-radius:8px; margin:10px 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas; white-space:pre-wrap;
+  }
+  
+  /* Key concepts box */
+  .concepts-box{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:12px; padding:20px; margin-top:20px;
+  }
+  .concepts-box h3{color:var(--blue); margin-bottom:15px;}
+  .concepts-box p{margin:10px 0; padding:10px; background:var(--bg); border-radius:8px; border-left:3px solid var(--blue);}
+  .concepts-box code{
+    background:rgba(13,110,253,.1); padding:2px 6px; border-radius:4px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas; font-size:13px;
+  }
+  
+  @media (max-width: 768px) {
+    .wrap{padding:20px}
+    h1{font-size:1.8em}
+    .action-buttons{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="course-header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="course-logo">
+    </div>
+    <h1>Web Scraping with BeautifulSoup</h1>
+    <p class="lead">Extract structured data from websites using Python</p>
+
+    <div class="intro">
+      <h2>Understanding Web Scraping</h2>
+      <p><strong>Web scraping</strong> is the process of extracting data from websites programmatically. It involves parsing HTML code to retrieve specific information that would otherwise require manual copying.</p>
+      
+      <div class="goal">
+        <h3>Learning Objectives</h3>
+        <p>You'll learn how to use BeautifulSoup, a Python library, to navigate HTML structure, locate specific elements, and extract data efficiently from web pages.</p>
+      </div>
+
+      <div class="analogy">
+        <h4>Core concept:</h4>
+        <p>Web scraping is like using a highlighter on a printed webpage - but instead of manually highlighting text, you write code that automatically finds and extracts the information you need.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showWebsiteStructure()" style="margin-top: 15px;">Next: Website Structure →</button>
+    </div>
+
+    <div class="stage" id="structure-stage" style="display: none;">
+      <h2><span class="step-number">1</span>Understanding Website Structure</h2>
+      <div class="explanation">
+        Every website consists of two layers: the visual frontend that users see, and the underlying HTML code that structures the content. BeautifulSoup works with the HTML layer to extract data.
+      </div>
+      
+      <div class="view-toggle">
+        <button class="btn active" onclick="toggleView('frontend')">View Website</button>
+        <button class="btn" onclick="toggleView('code')">View HTML Code</button>
+      </div>
+      
+      <div class="website-container">
+        <div id="frontend-view">
+          <div class="sample-site">
+            <h1 id="product-title">Amazing Python Book</h1>
+            <div class="price" id="product-price">$29.99</div>
+            <p class="description" id="product-desc">Learn Python programming with this comprehensive guide. Perfect for beginners!</p>
+            <div class="reviews">
+              <h3>Customer Reviews</h3>
+              <div class="review">
+                <span class="reviewer">Alice Johnson</span>
+                <span class="rating">★★★★★</span>
+                <p>Great book for learning Python basics!</p>
+              </div>
+              <div class="review">
+                <span class="reviewer">Bob Smith</span>
+                <span class="rating">★★★★☆</span>
+                <p>Very helpful examples and clear explanations.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="code-view">
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;h1 id="product-title"&gt;Amazing Python Book&lt;/h1&gt;
+    &lt;div class="price" id="product-price"&gt;$29.99&lt;/div&gt;
+    &lt;p class="description" id="product-desc"&gt;
+      Learn Python programming with this comprehensive guide. 
+      Perfect for beginners!
+    &lt;/p&gt;
+    &lt;div class="reviews"&gt;
+      &lt;h3&gt;Customer Reviews&lt;/h3&gt;
+      &lt;div class="review"&gt;
+        &lt;span class="reviewer"&gt;Alice Johnson&lt;/span&gt;
+        &lt;span class="rating"&gt;★★★★★&lt;/span&gt;
+        &lt;p&gt;Great book for learning Python basics!&lt;/p&gt;
+      &lt;/div&gt;
+      &lt;div class="review"&gt;
+        &lt;span class="reviewer"&gt;Bob Smith&lt;/span&gt;
+        &lt;span class="rating"&gt;★★★★☆&lt;/span&gt;
+        &lt;p&gt;Very helpful examples and clear explanations.&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</div>
+      </div>
+
+      <div class="analogy">
+        <h4>HTML structure:</h4>
+        <p>HTML uses tags (like &lt;h1&gt;, &lt;div&gt;, &lt;p&gt;) to organize content. Each element can have an ID (unique identifier) or class (shared style). BeautifulSoup uses these markers to find specific content.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showBeautifulSoup()" style="margin-top: 20px;">Next: Setting Up BeautifulSoup →</button>
+    </div>
+
+    <div class="stage" id="beautifulsoup-stage" style="display: none;">
+      <h2><span class="step-number">2</span>Setting Up BeautifulSoup</h2>
+      <div class="explanation">
+        Before extracting data, we need to import BeautifulSoup and parse our HTML content. This creates a navigable structure that we can search through programmatically.
+      </div>
+      
+      <div class="code-display">from bs4 import BeautifulSoup
+
+# HTML code from a website (usually fetched with requests library)
+html_code = """&lt;the HTML code from above&gt;"""
+
+# Create a BeautifulSoup object to parse the HTML
+soup = BeautifulSoup(html_code, 'html.parser')
+
+print("BeautifulSoup is ready to extract data")</div>
+
+      <div class="analogy">
+        <h4>Parser initialization:</h4>
+        <p>Creating a BeautifulSoup object is like loading a document into a word processor - once loaded, you can search, navigate, and extract any part of the content.</p>
+      </div>
+
+      <button class="btn btn-primary" onclick="showDataExtraction()" style="margin-top: 20px;">Next: Data Extraction Techniques →</button>
+    </div>
+    
+    <div class="stage" id="extraction-stage" style="display: none;">
+      <h2><span class="step-number">3</span>Data Extraction Techniques</h2>
+      <div class="explanation">
+        BeautifulSoup provides multiple methods to locate and extract data. Click the buttons below to see different extraction techniques in action.
+      </div>
+      
+      <div class="action-buttons">
+        <button class="btn primary" onclick="scrapeTitle()">Extract Title</button>
+        <button class="btn primary" onclick="scrapePrice()">Extract Price</button>
+        <button class="btn primary" onclick="scrapeDescription()">Extract Description</button>
+        <button class="btn primary" onclick="scrapeReviewers()">Extract All Reviewers</button>
+        <button class="btn primary" onclick="scrapeFirstReview()">Extract First Review</button>
+        <button class="btn primary" onclick="scrapeAllReviews()">Extract All Reviews</button>
+      </div>
+      
+      <div id="python-code" class="code-display" style="display:none;"></div>
+      <div id="result" class="result-display" style="display:none;"></div>
+      <div id="step-explanation" class="analogy" style="display:none;"></div>
+
+      <div class="analogy">
+        <h4>Extraction methods:</h4>
+        <p>BeautifulSoup offers precise targeting through IDs, classes, and tag names. You can extract single elements or collections, and navigate parent-child relationships in the HTML tree.</p>
+      </div>
+      
+      <button class="btn btn-primary" onclick="showBeautifulSoupMethods()" style="margin-top: 20px;">Next: Key BeautifulSoup Methods →</button>
+    </div>
+    
+    <div class="stage" id="methods-stage" style="display: none;">
+      <h2><span class="step-number">4</span>Key BeautifulSoup Methods</h2>
+      <div class="explanation">
+        Understanding these core methods will enable you to extract data from any website structure effectively.
+      </div>
+      
+      <div class="concepts-box">
+        <h3>Essential Methods Reference</h3>
+        <p><strong>Finding by ID:</strong> <code>soup.find(id="element-id")</code> - Locates a single element with the specified ID</p>
+        <p><strong>Finding by Class:</strong> <code>soup.find(class_="class-name")</code> - Finds the first element with the specified class</p>
+        <p><strong>Finding by Tag:</strong> <code>soup.find("tag-name")</code> - Locates the first occurrence of the specified HTML tag</p>
+        <p><strong>Finding Multiple:</strong> <code>soup.find_all(class_="class-name")</code> - Returns all elements matching the criteria</p>
+        <p><strong>Extracting Text:</strong> <code>.text</code> or <code>.get_text()</code> - Retrieves the text content without HTML tags</p>
+      </div>
+
+      <div class="analogy">
+        <h4>Method selection:</h4>
+        <p>Choose <code>find()</code> when you need one specific element, and <code>find_all()</code> when collecting multiple items. IDs are unique per page, while classes can appear multiple times.</p>
+      </div>
+      
+      <button class="btn btn-primary" onclick="showImplementation()" style="margin-top: 20px;">Next: Complete Implementation →</button>
+    </div>
+    
+    <div class="stage" id="implementation-stage" style="display: none;">
+      <h2><span class="step-number">5</span>Complete Implementation</h2>
+      <div class="explanation">
+        This complete example demonstrates a real-world web scraping workflow, from fetching the webpage to extracting and displaying structured data.
+      </div>
+      
+      <div class="code-display">from bs4 import BeautifulSoup
+import requests  # Library for fetching web content
+
+# Step 1: Fetch the webpage
+url = "http://example-bookstore.com/product"
+response = requests.get(url)
+html_code = response.text
+
+# Step 2: Parse with BeautifulSoup
+soup = BeautifulSoup(html_code, 'html.parser')
+
+# Step 3: Extract specific data
+book_title = soup.find(id="product-title").text
+price = soup.find(class_="price").text
+description = soup.find(class_="description").text
+
+# Step 4: Display extracted data
+print(f"Book: {book_title}")
+print(f"Price: {price}")
+print(f"Description: {description}")
+
+# Step 5: Extract all reviews
+reviews = soup.find_all(class_="review")
+for review in reviews:
+    reviewer = review.find(class_="reviewer").text
+    rating = review.find(class_="rating").text
+    text = review.find("p").text
+    print(f"\n{reviewer} ({rating}): {text}")</div>
+
+      <div class="analogy">
+        <h4>Workflow pattern:</h4>
+        <p>The standard scraping workflow follows: Fetch → Parse → Extract → Process. Each step builds on the previous one to transform raw HTML into structured, usable data.</p>
+      </div>
+
+      <button class="btn btn-primary" onclick="showSummary()" style="margin-top: 20px;">Next: See Summary →</button>
+    </div>
+    
+    <div class="intro" id="summary-stage" style="display: none;">
+      <h2>Summary</h2>
+      <p>You've learned the fundamentals of web scraping with BeautifulSoup:</p>
+      <ul style="margin: 12px 0; padding-left: 20px;">
+        <li><strong>HTML Structure</strong>: Websites are built with HTML tags, IDs, and classes</li>
+        <li><strong>BeautifulSoup Parsing</strong>: The library creates a searchable structure from HTML</li>
+        <li><strong>Element Selection</strong>: Use find() and find_all() with IDs, classes, or tags</li>
+        <li><strong>Data Extraction</strong>: Access text content and navigate element relationships</li>
+      </ul>
+      
+      <div class="goal">
+        <h3>Ethical Considerations</h3>
+        <p>Always respect website terms of service, check robots.txt files, implement rate limiting to avoid server overload, and consider using APIs when available instead of scraping.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleView(view) {
+      const frontendView = document.getElementById('frontend-view');
+      const codeView = document.getElementById('code-view');
+      const buttons = document.querySelectorAll('.view-toggle .btn');
+      
+      buttons.forEach(btn => btn.classList.remove('active'));
+      
+      if (view === 'frontend') {
+        frontendView.style.display = 'block';
+        codeView.style.display = 'none';
+        buttons[0].classList.add('active');
+      } else {
+        frontendView.style.display = 'none';
+        codeView.style.display = 'block';
+        buttons[1].classList.add('active');
+        highlightCode();
+      }
+    }
+    
+    function highlightCode(selector) {
+      const codeView = document.getElementById('code-view');
+      let html = codeView.innerHTML.replace(/<span class="code-highlight">|<\/span>/g, '');
+      
+      if (selector) {
+        html = html.replace(new RegExp(selector, 'g'), `<span class="code-highlight">${selector}</span>`);
+      }
+      
+      codeView.innerHTML = html;
+    }
+    
+    function showResult(pythonCode, result, explanation) {
+      document.getElementById('python-code').style.display = 'block';
+      document.getElementById('python-code').textContent = pythonCode;
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('result').textContent = result;
+      document.getElementById('step-explanation').style.display = 'block';
+      document.getElementById('step-explanation').innerHTML = explanation;
+    }
+    
+    function scrapeTitle() {
+      const code = `# Find the element with id="product-title" and get its text
+title = soup.find(id="product-title").text
+print(title)`;
+      const result = `Output: Amazing Python Book`;
+      const explanation = `<h4>Process breakdown:</h4>
+<p>The <code>find(id="product-title")</code> method locates the h1 tag with that specific ID. The <code>.text</code> property then extracts only the text content, removing HTML tags.</p>`;
+      showResult(code, result, explanation);
+    }
+    
+    function scrapePrice() {
+      const code = `# Find the first element with class="price"
+price = soup.find(class_="price").text
+print(f"The price is: {price}")`;
+      const result = `Output: The price is: $29.99`;
+      const explanation = `<h4>Class selection:</h4>
+<p>The <code>find(class_="price")</code> method locates elements by CSS class. Note the underscore in <code>class_</code> - this is required because "class" is a Python reserved keyword.</p>`;
+      showResult(code, result, explanation);
+    }
+    
+    function scrapeDescription() {
+      const code = `# Find by both tag and class
+description = soup.find("p", class_="description").text
+print(description)`;
+      const result = `Output: Learn Python programming with this comprehensive guide. Perfect for beginners!`;
+      const explanation = `<h4>Combined selectors:</h4>
+<p>You can search by multiple criteria simultaneously. Here we specify both the tag name ("p") and class name for more precise element targeting.</p>`;
+      showResult(code, result, explanation);
+    }
+    
+    function scrapeReviewers() {
+      const code = `# Find ALL elements with class="reviewer"
+reviewers = soup.find_all(class_="reviewer")
+
+for reviewer in reviewers:
+    print(reviewer.text)`;
+      const result = `Output:
+Alice Johnson
+Bob Smith`;
+      const explanation = `<h4>Multiple elements:</h4>
+<p>The <code>find_all()</code> method returns a list of all matching elements. We iterate through this list to extract each reviewer's name.</p>`;
+      showResult(code, result, explanation);
+    }
+    
+    function scrapeFirstReview() {
+      const code = `# Find the first review div
+first_review = soup.find(class_="review")
+
+# Extract different parts from inside it
+reviewer_name = first_review.find(class_="reviewer").text
+rating = first_review.find(class_="rating").text
+review_text = first_review.find("p").text
+
+print(f"Reviewer: {reviewer_name}")
+print(f"Rating: {rating}")
+print(f"Review: {review_text}")`;
+      const result = `Output:
+Reviewer: Alice Johnson
+Rating: ★★★★★
+Review: Great book for learning Python basics!`;
+      const explanation = `<h4>Nested extraction:</h4>
+<p>After finding a parent element (the review div), we search within it for child elements. This hierarchical approach allows precise data extraction from complex structures.</p>`;
+      showResult(code, result, explanation);
+    }
+    
+    function scrapeAllReviews() {
+      const code = `# Get all reviews and extract their text
+all_reviews = soup.find_all(class_="review")
+
+print(f"Found {len(all_reviews)} reviews:\\n")
+
+for i, review in enumerate(all_reviews, 1):
+    review_text = review.find("p").text
+    print(f"Review {i}: {review_text}")`;
+      const result = `Output:
+Found 2 reviews:
+
+Review 1: Great book for learning Python basics!
+Review 2: Very helpful examples and clear explanations.`;
+      const explanation = `<h4>Batch processing:</h4>
+<p>Using <code>find_all()</code> with iteration allows bulk extraction. The <code>enumerate()</code> function adds index numbers to track position in the collection.</p>`;
+      showResult(code, result, explanation);
+    }
+
+    // Navigation functions for progressive disclosure
+    function showWebsiteStructure() {
+      document.getElementById('structure-stage').style.display = 'block';
+      document.getElementById('structure-stage').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showBeautifulSoup() {
+      document.getElementById('beautifulsoup-stage').style.display = 'block';
+      document.getElementById('beautifulsoup-stage').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showDataExtraction() {
+      document.getElementById('extraction-stage').style.display = 'block';
+      document.getElementById('extraction-stage').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showBeautifulSoupMethods() {
+      document.getElementById('methods-stage').style.display = 'block';
+      document.getElementById('methods-stage').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showImplementation() {
+      document.getElementById('implementation-stage').style.display = 'block';
+      document.getElementById('implementation-stage').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showSummary() {
+      document.getElementById('summary-stage').style.display = 'block';
+      document.getElementById('summary-stage').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

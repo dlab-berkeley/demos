@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>D-Lab Interactive Demos</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --text:#212529;
+    --blue:#0d6efd;
+    --muted:#6c757d;
+    --border:#dee2e6;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text); line-height: 1.6; min-height: 100vh;
+  }
+  .wrap{max-width:800px;margin:0 auto;padding:80px 20px}
+  
+  .header{text-align:center;margin-bottom:80px}
+  .logo{width:300px;height:auto;margin-bottom:24px}
+  h1{font-size:3.5em;margin:0 0 16px; color:var(--text); font-weight:300;}
+  .subtitle{color:var(--muted);font-size:1.2em;margin:0}
+
+  .tutorials{display:flex;flex-direction:column;gap:24px;}
+  
+  .tutorial-link{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:24px 32px; border:1px solid var(--border); border-radius:8px;
+    text-decoration:none; color:var(--text); transition:all 0.2s ease;
+    background:var(--bg);
+  }
+  .tutorial-link:hover{
+    border-color:var(--blue); transform:translateY(-1px);
+    box-shadow:0 4px 12px rgba(13,110,253,.1);
+  }
+  
+  .tutorial-info h3{margin:0 0 4px; font-size:1.3em; font-weight:500;}
+  .tutorial-info p{margin:0; color:var(--muted); font-size:0.95em;}
+  .tutorial-arrow{color:var(--muted); font-size:1.2em;}
+  
+  @media (max-width: 768px) {
+    .wrap{padding:60px 20px}
+    h1{font-size:2.5em}
+    .tutorial-link{padding:20px 24px}
+    .tutorial-info h3{font-size:1.2em}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="logo">
+      <p class="subtitle">Interactive Demos</p>
+    </div>
+
+    <div class="tutorials">
+      <a href="git.html" class="tutorial-link">
+        <div class="tutorial-info">
+          <h3>Git & GitHub</h3>
+          <p>Version control, branching, and team collaboration workflows</p>
+        </div>
+        <div class="tutorial-arrow">→</div>
+      </a>
+
+      <a href="web-apis.html" class="tutorial-link">
+        <div class="tutorial-info">
+          <h3>Web APIs</h3>
+          <p>Understanding REST, authentication, rate limiting, and API integration</p>
+        </div>
+        <div class="tutorial-arrow">→</div>
+      </a>
+
+      <a href="web-scraping.html" class="tutorial-link">
+        <div class="tutorial-info">
+          <h3>Web Scraping</h3>
+          <p>Extract structured data from websites using Python and BeautifulSoup</p>
+        </div>
+        <div class="tutorial-arrow">→</div>
+      </a>
+
+      <a href="tfidf.html" class="tutorial-link">
+        <div class="tutorial-info">
+          <h3>TF-IDF Analysis</h3>
+          <p>Measuring document importance and extracting key terms from text</p>
+        </div>
+        <div class="tutorial-arrow">→</div>
+      </a>
+
+      <a href="tfidf-game.html" class="tutorial-link">
+        <div class="tutorial-info">
+          <h3>TF-IDF Game</h3>
+          <p>Word Detective: an interactive mystery game using TF-IDF concepts</p>
+        </div>
+        <div class="tutorial-arrow">→</div>
+      </a>
+
+      <a href="embeddings.html" class="tutorial-link">
+        <div class="tutorial-info">
+          <h3>Word Embeddings</h3>
+          <p>How computers learn word meanings through context and training</p>
+        </div>
+        <div class="tutorial-arrow">→</div>
+      </a>
+
+      <a href="transformers.html" class="tutorial-link">
+        <div class="tutorial-info">
+          <h3>Transformer Attention</h3>
+          <p>Understanding how AI models process language with Query, Key, Value matrices</p>
+        </div>
+        <div class="tutorial-arrow">→</div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

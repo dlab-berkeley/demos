@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>D-Lab - Git & GitHub Tutorial</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f8f9fa;
+    --muted:#6c757d;
+    --text:#212529;
+    --blue:#0d6efd;
+    --indigo:#6610f2;
+    --emerald:#198754;
+    --orange:#fd7e14;
+    --border:#dee2e6;
+    --red:#dc3545;
+    --yellow:#ffc107;
+    --purple:#6f42c1;
+    --github:#f8f9fa;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text);
+    line-height: 1.5;
+  }
+  .wrap{max-width:1200px;margin:32px auto;padding:0 20px}
+  .course-header{text-align:center;margin-bottom:20px;padding:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)}
+  .course-logo{width:180px;height:auto;margin-bottom:8px}
+  .course-title{font-size:1.2em;color:var(--blue);margin:0;font-weight:600}
+  h1{font-size:32px;margin:0 0 12px; text-align: center;}
+  .intro{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px;
+    margin-bottom: 24px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .intro h2{margin:0 0 12px; color:var(--blue);}
+  .intro p{margin:12px 0; font-size: 16px;}
+  .goal{
+    background:rgba(255,179,102,.1); border:1px solid rgba(255,179,102,.3); 
+    border-radius:12px; padding:16px; margin:16px 0;
+  }
+  .goal h3{margin:0 0 8px; color:var(--orange);}
+  p.lead{color:var(--muted);margin:0 0 24px; font-size: 18px; text-align: center;}
+  
+  .stage{
+    border:1px solid var(--border); border-radius:16px; padding:24px; 
+    background:var(--bg); margin-bottom:24px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .stage h2{margin:0 0 12px; font-size:20px; color:var(--blue);}
+  .stage .explanation{
+    font-size:15px; color:var(--text); margin-bottom:16px; 
+    background:rgba(13,110,253,.08); padding:12px 16px; border-radius:12px;
+    border-left: 4px solid var(--blue);
+  }
+  
+  .analogy{
+    background:rgba(102,16,242,.08); border:1px solid rgba(102,16,242,.3); 
+    border-radius:12px; padding:16px; margin:16px 0;
+  }
+  .analogy h4{margin:0 0 8px; color:var(--indigo); font-size: 14px;}
+  
+  .step-number{
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; background: var(--blue);
+    color: white; font-weight: bold; font-size: 12px; margin-right: 8px;
+  }
+
+  /* Git Workflow Visualization */
+  .git-flow{
+    display: flex; justify-content: space-around; align-items: center; 
+    margin: 24px 0; padding: 20px; background: var(--panel); border-radius: 12px; border: 1px solid var(--border);
+    flex-wrap: wrap; gap: 20px;
+  }
+  
+  .computer, .github{
+    flex: 1; min-width: 300px; padding: 20px; border-radius: 12px; text-align: center;
+  }
+  
+  .computer{
+    background: rgba(13,110,253,.1); border: 2px solid var(--blue);
+  }
+  
+  .github{
+    background: rgba(25,135,84,.1); border: 2px solid var(--emerald);
+  }
+  
+  .flow-arrow{
+    font-size: 24px; color: var(--orange); margin: 0 10px;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  /* Workflow Areas */
+  .workflow-container{
+    background: var(--panel); border-radius: 16px; padding: 20px;
+    margin: 20px 0; border: 1px solid var(--border);
+  }
+  
+  .workflow-areas{
+    display: grid; grid-template-columns: repeat(2, 1fr); 
+    gap: 16px; margin: 20px 0;
+  }
+  
+  .local-section, .remote-section{
+    border: 2px dashed var(--border); border-radius: 12px; padding: 16px;
+  }
+  
+  .local-section{
+    background: rgba(13,110,253,.05);
+  }
+  
+  .remote-section{
+    background: rgba(25,135,84,.05);
+    grid-column: span 2;
+  }
+  
+  .three-areas{
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 12px;
+  }
+  
+  .area{
+    background: var(--bg); border: 2px solid var(--border); border-radius: 12px; 
+    padding: 16px; min-height: 150px; position: relative; transition: all 0.3s ease;
+  }
+  
+  .area.working{border-color: var(--yellow); background: rgba(255,193,7,.1);}
+  .area.staging{border-color: var(--orange); background: rgba(253,126,20,.1);}
+  .area.repository{border-color: var(--emerald); background: rgba(25,135,84,.1);}
+  .area.remote{border-color: var(--purple); background: rgba(111,66,193,.1);}
+  
+  .area h3{margin: 0 0 12px; font-size: 16px;}
+  .area.working h3{color: var(--yellow);}
+  .area.staging h3{color: var(--orange);}
+  .area.repository h3{color: var(--emerald);}
+  .area.remote h3{color: var(--purple);}
+  
+  .section-label{
+    font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* File representations */
+  .file{
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; margin: 4px 0; transition: all 0.3s ease;
+    display: flex; align-items: center; gap: 8px; font-size: 13px;
+  }
+  
+  .file.interactive{cursor: pointer;}
+  .file.interactive:hover{background: var(--panel); transform: translateY(-2px);}
+  .file.static{cursor: default;}
+  .file.modified{border-color: var(--yellow); background: rgba(255,193,7,.1);}
+  .file.staged{border-color: var(--orange); background: rgba(253,126,20,.1);}
+  .file.committed{border-color: var(--emerald); background: rgba(25,135,84,.1);}
+  .file.pushed{border-color: var(--purple); background: rgba(111,66,193,.1);}
+
+  /* Interactive buttons */
+  .btn{
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
+    border-radius: 12px; border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); cursor: pointer; font-size: 14px; margin: 4px;
+    transition: all 0.3s ease;
+  }
+  .btn:hover{background: var(--panel); transform: translateY(-1px);}
+  .btn-primary{background: var(--blue); color: white; border-color: var(--blue);}
+  .btn-primary:hover{background: #0b5ed7; border-color: #0b5ed7;}
+  .btn.git-add{border-color: var(--orange); color: var(--orange);}
+  .btn.git-commit{border-color: var(--emerald); color: var(--emerald);}
+  .btn.git-push{border-color: var(--purple); color: var(--purple);}
+  .btn.git-pull{border-color: var(--blue); color: var(--blue);}
+  .btn.reset{border-color: var(--red); color: var(--red);}
+  .btn.active{background: var(--panel);}
+
+  /* Command Panel */
+  .command-panel{
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;
+  }
+  
+  .command-section{
+    background: var(--panel); border-radius: 12px; padding: 16px; border: 1px solid var(--border);
+  }
+  
+  .command-section h4{
+    margin: 0 0 12px; color: var(--blue); font-size: 14px;
+  }
+  
+  .command-line{
+    background: #1a1a1a; color: #00ff00; padding: 12px; border-radius: 8px;
+    font-family: 'Courier New', monospace; font-size: 13px; margin: 8px 0;
+    border: 1px solid var(--border); max-height: 200px; overflow-y: auto;
+  }
+
+  /* Branch visualization */
+  .branch-container{
+    background: var(--panel); border-radius: 12px; padding: 20px;
+    margin: 20px 0; border: 1px solid var(--border);
+  }
+  
+  .branch-graph{
+    display: flex; flex-direction: column; gap: 10px; margin: 20px 0;
+    position: relative; padding-left: 20px;
+  }
+  
+  .branch-line{
+    display: flex; align-items: center; position: relative;
+    opacity: 0.5; transition: opacity 0.3s ease;
+  }
+  
+  .branch-line.active{
+    opacity: 1;
+  }
+  
+  .branch-name{
+    width: 100px; font-size: 13px; font-weight: bold; margin-right: 20px;
+  }
+  
+  .commit-node{
+    width: 30px; height: 30px; border-radius: 50%; margin: 0 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #000; font-size: 11px; font-weight: bold; cursor: pointer;
+    transition: all 0.3s ease; position: relative;
+  }
+  
+  .commit-node:hover{transform: scale(1.2);}
+  .commit-node.main{background: var(--blue);}
+  .commit-node.feature{background: var(--purple);}
+  .commit-node.bugfix{background: var(--red);}
+  
+  .current-branch{
+    background: rgba(13,110,253,.2); padding: 8px; border-radius: 8px;
+    border: 2px solid var(--blue); margin: 10px 0;
+  }
+
+  /* Collaboration visualization */
+  .collab-container{
+    background: var(--panel); border-radius: 12px; padding: 20px;
+    margin: 20px 0; border: 1px solid var(--border);
+  }
+  
+  .team-grid{
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px; margin: 20px 0;
+  }
+  
+  .developer-card{
+    background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; transition: all 0.3s ease;
+  }
+  
+  .developer-card.active{
+    border-color: var(--blue); background: rgba(13,110,253,.1);
+  }
+  
+  .avatar{
+    width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    font-weight: bold;
+  }
+  .avatar.dev1{background: var(--blue);}
+  .avatar.dev2{background: var(--purple);}
+  .avatar.dev3{background: var(--emerald);}
+  
+  .branch-work{
+    font-size: 12px; margin-top: 10px; padding: 8px;
+    background: var(--panel); border-radius: 8px;
+  }
+  
+  .branch-work.inactive{
+    opacity: 0.5;
+  }
+  
+  .pr-list{
+    margin: 20px 0;
+  }
+  
+  .pr-item{
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; margin: 8px 0; display: flex; justify-content: space-between;
+    align-items: center; transition: all 0.3s ease;
+  }
+  
+  .pr-item:hover{background: var(--panel);}
+  
+  .pr-status{
+    padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;
+  }
+  .pr-status.open{background: rgba(13,110,253,.2); color: var(--blue);}
+  .pr-status.merged{background: rgba(25,135,84,.2); color: var(--emerald);}
+  .pr-status.review{background: rgba(253,126,20,.2); color: var(--orange);}
+
+  .controls{
+    display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; 
+    padding: 16px; background: var(--panel); border-radius: 12px; border: 1px solid var(--border);
+  }
+
+  .status{
+    padding: 12px; background: var(--bg); border-radius: 8px; 
+    border-left: 4px solid var(--blue); margin: 12px 0; border: 1px solid var(--border);
+  }
+
+  .timeline{
+    margin: 20px 0; padding: 16px; background: var(--panel); border-radius: 12px;
+    max-height: 300px; overflow-y: auto; border: 1px solid var(--border);
+  }
+  
+  .timeline-item{
+    display: flex; align-items: center; margin: 8px 0; padding: 8px;
+    border-left: 3px solid var(--muted); opacity: 0; animation: fadeIn 0.5s ease-in forwards;
+  }
+  
+  .timeline-icon{
+    width: 30px; height: 30px; border-radius: 50%; margin-right: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    .git-flow{flex-direction: column;}
+    .workflow-areas{grid-template-columns: 1fr;}
+    .remote-section{grid-column: span 1;}
+    .three-areas{grid-template-columns: 1fr;}
+    .command-panel{grid-template-columns: 1fr;}
+    .controls{justify-content: center;}
+    #staging-metaphor > div:first-of-type {grid-template-columns: 1fr;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="course-header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="course-logo">
+    </div>
+    <h1>Git & GitHub: How Developers Save and Share Code</h1>
+    <p class="lead">Interactive demonstration of Git and Github.</p>
+
+    <div class="intro">
+      <h2>Understanding Git vs GitHub</h2> 
+
+      <p><strong>Git</strong> is a version control tool that keeps a complete history of changes to a folder of files, called a <strong>repository (repo)</strong>.</p>
+      <p><strong>GitHub</strong> is an online service that hosts these repositories, making it easy for people to collaborate, share, and work on the same code together.</p>
+      
+      <div class="goal">
+        <h3>Learning Objectives</h3>
+        <p>You'll understand how developers manage code changes, collaborate with teams, and maintain project history using git.</p>
+      </div>
+
+      <div class="analogy">
+        <h4>Think of it like:</h4>
+        <p><strong>Git</strong> = A detailed logbook that records every change made to a document<br/>
+        <strong>GitHub</strong> = A shared library where teams can access and contribute to the same logbooks</p>
+      </div>
+      <button class="btn btn-primary" onclick="showRepositories()" style="margin-top: 15px;">Next: Local vs Remote Repositories →</button>
+    </div>
+
+    <div class="stage" id="repositories-stage" style="display: none;">
+      <h2><span class="step-number">1</span>Local vs Remote Repositories</h2>
+      <div class="explanation">
+        Git often works with two copies of your project: one on your computer and one in the cloud (for instance, on Github). This simple concept enables powerful collaboration.
+      </div>
+      
+      <div class="git-flow">
+        <div class="computer">
+          <h3>💻 Your Computer</h3>
+          <p style="font-size: 13px; color: var(--muted);">Local Repository</p>
+          <div style="margin: 12px 0;">
+            <div style="font-size: 14px;">Work offline</div>
+            <div style="font-size: 14px;">Full project history</div>
+            <div style="font-size: 14px;">Experiment freely</div>
+          </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; font-size: 32px; color: var(--orange);">
+          ⟷
+        </div>
+        
+        <div class="github">
+          <h3>☁️ GitHub</h3>
+          <p style="font-size: 13px; color: var(--muted);">Remote Repository</p>
+          <div style="margin: 12px 0;">
+            <div style="font-size: 14px;">Backup in cloud</div>
+            <div style="font-size: 14px;">Share with team</div>
+            <div style="font-size: 14px;">Access anywhere</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="analogy" style="margin-top: 20px;">
+        <h4>Think of it like:</h4>
+        <p>Working on a document on your laptop (local) while keeping a backup in Google Drive (remote) that your team can access. You can work offline on your laptop, then sync when you're ready to share.</p>
+      </div>
+      
+      <div style="margin-top: 16px; padding: 16px; background: rgba(13,110,253,.08); border-radius: 12px; border-left: 4px solid var(--blue);">
+        <h4 style="color: var(--blue); margin: 0 0 8px;">Key Commands (we'll practice these later):</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+          <div><code style="background: var(--panel); padding: 4px 8px; border-radius: 4px;">git push</code> - Send your changes to GitHub</div>
+          <div><code style="background: var(--panel); padding: 4px 8px; border-radius: 4px;">git pull</code> - Get latest changes from GitHub</div>
+          <div><code style="background: var(--panel); padding: 4px 8px; border-radius: 4px;">git clone</code> - Copy a project from GitHub</div>
+          <div><code style="background: var(--panel); padding: 4px 8px; border-radius: 4px;">git fetch</code> - Check for updates</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="showStagingMetaphor()" style="margin-top: 20px;">Next: Understanding Staging →</button>
+    </div>
+
+    <div class="stage" id="staging-metaphor" style="display: none;">
+      <h2><span class="step-number">2</span>Understanding Staging: The Photography Studio</h2>
+      <div class="explanation">
+        Before learning Git commands, let's understand why Git uses a "staging area". Think of it like a photography studio where you arrange items before taking a snapshot.
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+        <!-- Working Directory (Desk) -->
+        <div style="background: var(--panel); border-radius: 12px; padding: 20px; border: 2px dashed var(--border);">
+          <h3 style="color: var(--blue); margin: 0 0 12px; font-size: 16px;">📁 Your Working Directory (Messy Desk)</h3>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Drag files to the stage →</p>
+          <div id="desk-area" style="min-height: 150px;">
+            <div class="draggable-file" draggable="true" data-filename="index.html" style="background: white; border: 2px solid var(--yellow); border-radius: 8px; padding: 10px; margin: 8px 0; cursor: move; transition: all 0.3s;">
+              📄 index.html <span style="color: var(--yellow); font-size: 11px;">(modified)</span>
+            </div>
+            <div class="draggable-file" draggable="true" data-filename="styles.css" style="background: white; border: 2px solid var(--yellow); border-radius: 8px; padding: 10px; margin: 8px 0; cursor: move; transition: all 0.3s;">
+              📄 styles.css <span style="color: var(--yellow); font-size: 11px;">(modified)</span>
+            </div>
+            <div class="draggable-file" draggable="true" data-filename="script.js" style="background: white; border: 2px solid var(--yellow); border-radius: 8px; padding: 10px; margin: 8px 0; cursor: move; transition: all 0.3s;">
+              📄 script.js <span style="color: var(--yellow); font-size: 11px;">(modified)</span>
+            </div>
+            <div class="draggable-file" draggable="true" data-filename="test.js" style="background: white; border: 2px solid var(--yellow); border-radius: 8px; padding: 10px; margin: 8px 0; cursor: move; transition: all 0.3s;">
+              📄 test.js <span style="color: var(--yellow); font-size: 11px;">(work in progress)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Staging Area (Photography Stage) -->
+        <div style="background: linear-gradient(135deg, rgba(253,126,20,.1) 0%, rgba(253,126,20,.05) 100%); border-radius: 12px; padding: 20px; border: 3px solid var(--orange); position: relative;">
+          <h3 style="color: var(--orange); margin: 0 0 12px; font-size: 16px;">🎬 Staging Area (Photography Stage)</h3>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Drop files here to stage them</p>
+          <div id="stage-area" style="min-height: 150px; background: white; border: 2px dashed var(--orange); border-radius: 8px; padding: 12px; position: relative;">
+            <div id="stage-placeholder" style="text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px;">
+              Drop files here to prepare them for the snapshot
+            </div>
+          </div>
+          <div style="position: absolute; top: 10px; right: 10px; font-size: 24px;">📸</div>
+        </div>
+      </div>
+
+      <!-- Snapshot Button -->
+      <div style="text-align: center; margin: 24px 0;">
+        <button id="take-snapshot" class="btn" style="background: var(--emerald); color: white; border-color: var(--emerald); padding: 12px 24px; font-size: 16px; opacity: 0.5; cursor: not-allowed;" disabled onclick="takeSnapshot()">
+          📸 Take Snapshot (git commit)
+        </button>
+        <p id="snapshot-message" style="margin-top: 12px; font-size: 13px; color: var(--muted);">Stage some files first!</p>
+      </div>
+
+      <!-- Photo Album (Commit History) -->
+      <div style="background: var(--panel); border-radius: 12px; padding: 20px; margin-top: 24px; border: 1px solid var(--border);">
+        <h3 style="color: var(--emerald); margin: 0 0 16px;">📚 Your Photo Album (Commit History)</h3>
+        <div id="photo-album" style="display: flex; gap: 12px; overflow-x: auto; padding: 12px 0; min-height: 120px;">
+          <div style="text-align: center; color: var(--muted); width: 100%; padding: 20px;">
+            Your snapshots will appear here...
+          </div>
+        </div>
+      </div>
+
+      <!-- Explanation -->
+      <div class="analogy" style="margin-top: 20px;">
+        <h4>Why this two-step process?</h4>
+        <p>Just like a photographer carefully arranges items on a stage before taking a photo, Git lets you carefully select which changes to include in each commit. This creates a clean, understandable project history where each "snapshot" has a clear purpose.</p>
+      </div>
+
+      <button class="btn btn-primary" onclick="showWorkflow()" style="margin-top: 20px;">Next: See the Full Git Workflow →</button>
+    </div>
+
+    <div class="stage" id="workflow-stage" style="display: none;">
+      <h2><span class="step-number">3</span>Git Workflow</h2>
+      <div class="explanation">
+        Now let's see the staging concept in action. Watch how files move from your working directory, to the stage, then into permanent snapshots (commits), and finally to the remote repository for team collaboration.
+      </div>
+      
+      <div class="workflow-container">
+        <div class="workflow-areas">
+          <div class="local-section">
+            <div class="section-label">📍 Local Machine</div>
+            <div class="three-areas">
+              <div class="area working" id="working-area">
+                <h3>Working Directory</h3>
+                <p style="font-size: 12px;">Edit files here</p>
+                <div id="working-files">
+                  <div class="file modified interactive" onclick="selectFile(this)">homepage.html</div>
+                </div>
+              </div>
+              
+              <div class="area staging" id="staging-area">
+                <h3>Staging Area</h3>
+                <p style="font-size: 12px;">Prepare to commit</p>
+                <div id="staging-files"></div>
+              </div>
+              
+              <div class="area repository" id="repository-area">
+                <h3>Local Repository</h3>
+                <p style="font-size: 12px;">Committed history</p>
+                <div id="repository-files"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="remote-section">
+            <div class="section-label">☁️ GitHub (Remote)</div>
+            <div class="area remote" id="remote-area">
+              <h3>Remote Repository</h3>
+              <p style="font-size: 12px;">Shared team codebase - push your commits here, pull others' changes from here</p>
+              <div id="remote-files"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn" onclick="modifyFile()">
+            📝 Edit File
+          </button>
+          <button class="btn git-add" onclick="gitAdd()">
+            ➕ git add
+          </button>
+          <button class="btn git-commit" onclick="gitCommit()">
+            ✅ git commit
+          </button>
+          <button class="btn git-push" onclick="gitPush()">
+            ⬆️ git push
+          </button>
+          <button class="btn git-pull" onclick="gitPull()">
+            ⬇️ git pull
+          </button>
+          <button class="btn reset" onclick="resetDemo()">
+            🔄 Reset Demo
+          </button>
+        </div>
+
+        <div class="command-panel">
+          <div class="command-section">
+            <h4>Command History</h4>
+            <div class="command-line" id="command-history">
+              $ git status<br/>
+              On branch main<br/>
+              Changes not staged for commit:<br/>
+              &nbsp;&nbsp;modified: homepage.html<br/>
+            </div>
+          </div>
+          
+          <div class="command-section">
+            <h4>Workflow Status</h4>
+            <div class="status" id="git-status">
+              <strong>Current State:</strong> 1 modified file in working directory
+            </div>
+            <div style="font-size: 12px; color: var(--muted); margin-top: 10px;">
+              <strong>Workflow Steps:</strong><br/>
+              1. <code>git add</code> - Stage changes<br/>
+              2. <code>git commit</code> - Save locally<br/>
+              3. <code>git push</code> - Upload to remote<br/>
+              4. <code>git pull</code> - Download from remote<br/>
+              <br/>
+              <em>Note: "Reset Demo" resets this interactive demo,<br/>not the same as git reset command</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="analogy">
+        <h4>Complete workflow:</h4>
+        <p><strong>Working</strong> → <strong>Staging</strong> → <strong>Local Repo</strong> → <strong>Remote Repo</strong> = Full development cycle with team synchronization</p>
+      </div>
+      <button class="btn btn-primary" onclick="showBranches()" style="margin-top: 20px;">Next: Branch Management →</button>
+    </div>
+
+    <div class="stage" id="branches-stage" style="display: none;">
+      <h2><span class="step-number">4</span>Branch Management</h2>
+      <div class="explanation">
+        Branches are separate versions of your repository that let you work on changes independently from the main version. Using branches, you can try out changes without affecting the main version until you’re ready to <strong>merge</strong> them. Try it out! Create feature branches, make commits, switch between branches, and merge.
+      </div>
+
+      <div class="branch-container">
+        <div class="current-branch">
+          <strong>Current Branch:</strong> <span id="current-branch">main</span>
+        </div>
+        
+        <div class="branch-graph" id="branch-graph">
+          <div class="branch-line active" id="branch-main">
+            <span class="branch-name" style="color: var(--blue)">main</span>
+            <div class="commit-node main" onclick="checkoutCommit(this, 'A')">A</div>
+            <div class="commit-node main" onclick="checkoutCommit(this, 'B')">B</div>
+            <div class="commit-node main" onclick="checkoutCommit(this, 'C')">C</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn" onclick="createNewBranch()">
+            🌿 Create Branch
+          </button>
+          <button class="btn" onclick="switchBranch()">
+            🔀 Switch Branch
+          </button>
+          <button class="btn" onclick="makeCommit()">
+            ✨ Make Commit
+          </button>
+          <button class="btn" onclick="mergeBranch()">
+            🔄 Merge to Main
+          </button>
+          <button class="btn" onclick="deleteBranch()">
+            ❌ Delete Branch
+          </button>
+          <button class="btn reset" onclick="resetBranches()">
+            🔄 Reset Demo
+          </button>
+        </div>
+
+        <div class="status" id="branch-status">
+          <strong>Branch Status:</strong> On branch main with 3 commits
+        </div>
+      </div>
+
+      <div class="analogy">
+        <h4>Think of it like:</h4>
+        <p>Branches are parallel universes where you can experiment without affecting the main timeline. Successful experiments get merged back.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showCollaboration()" style="margin-top: 20px;">Next: Team Collaboration →</button>
+    </div>
+
+    <div class="stage" id="collaboration-stage" style="display: none;">
+      <h2><span class="step-number">5</span>Team Collaboration with Pull Requests</h2>
+      <div class="explanation">
+        Here, we simulate team collaboration using git: developers work on feature branches, create pull requests for code review, and merge approved changes.
+      </div>
+
+      <div class="collab-container">
+        <div class="team-grid" id="team-grid">
+          <div class="developer-card" id="dev-sarah">
+            <div class="avatar dev1">S</div>
+            <h4>Sarah (Frontend)</h4>
+            <div class="branch-work" id="sarah-branch">
+              <strong>Branch:</strong> <span class="branch-name">feature-ui</span>
+              <div style="margin-top: 8px;">
+                Working on: Homepage redesign
+              </div>
+            </div>
+            <button class="btn" onclick="developerWork('sarah')">Start Work</button>
+          </div>
+          
+          <div class="developer-card" id="dev-mike">
+            <div class="avatar dev2">M</div>
+            <h4>Mike (Backend)</h4>
+            <div class="branch-work" id="mike-branch">
+              <strong>Branch:</strong> <span class="branch-name">feature-auth</span>
+              <div style="margin-top: 8px;">
+                Working on: User authentication
+              </div>
+            </div>
+            <button class="btn" onclick="developerWork('mike')">Start Work</button>
+          </div>
+          
+          <div class="developer-card" id="dev-alex">
+            <div class="avatar dev3">A</div>
+            <h4>Alex (DevOps)</h4>
+            <div class="branch-work" id="alex-branch">
+              <strong>Branch:</strong> <span class="branch-name">feature-deploy</span>
+              <div style="margin-top: 8px;">
+                Working on: CI/CD pipeline
+              </div>
+            </div>
+            <button class="btn" onclick="developerWork('alex')">Start Work</button>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn git-push" onclick="simulateFullWorkflow()">
+            👥 Simulate Full Team Workflow
+          </button>
+          <button class="btn" onclick="reviewPullRequest()">
+            👀 Review Pull Request
+          </button>
+          <button class="btn" onclick="mergePullRequest()">
+            ✅ Merge Pull Request
+          </button>
+          <button class="btn reset" onclick="resetCollab()">
+            🔄 Reset Collaboration
+          </button>
+        </div>
+
+        <div class="pr-list" id="pr-list">
+          <h3>Pull Requests</h3>
+          <div id="pr-container">
+            <!-- PRs will appear here -->
+          </div>
+        </div>
+
+        <div class="timeline" id="collab-timeline">
+          <h3>Team Activity Log</h3>
+          <!-- Activity will appear here -->
+        </div>
+      </div>
+
+      <div class="analogy">
+        <h4>Pull Request workflow:</h4>
+        <p>Developers work independently on feature branches → Create pull requests → Team reviews code → Approved changes merge to main branch</p>
+      </div>
+      <button class="btn btn-primary" onclick="showSummary()" style="margin-top: 20px;">Next: Summary →</button>
+    </div>
+
+    <div class="intro" id="summary-stage" style="display: none;">
+      <h2>Summary</h2>
+      <p>You've now experienced the Git and GitHub workflow through interactive demonstrations:</p>
+      <ul style="margin: 12px 0; padding-left: 20px;">
+        <li><strong>Complete workflow</strong>: Working directory → Staging → Local repo → Remote repo</li>
+        <li><strong>Branch management</strong>: Creating, switching, and merging branches interactively</li>
+        <li><strong>Pull request workflow</strong>: How teams collaborate through code review</li>
+        <li><strong>Essential commands</strong>: add, commit, push, pull, branch, merge in action</li>
+      </ul>
+      
+    </div>
+
+  </div>
+
+<script>
+// Tutorial state
+let currentFiles = {
+  working: ['homepage.html'],
+  staging: [],
+  repository: [],
+  remote: []
+};
+
+let branches = {
+  main: ['A', 'B', 'C']
+};
+
+let currentBranch = 'main';
+let commitCounter = 3; // Starting with A, B, C
+let selectedFile = null;
+let pullRequests = [];
+let prIdCounter = 0;
+
+// Staging metaphor variables
+let stagedFiles = [];
+let snapshotCounter = 0;
+
+
+// Initialize
+updateDisplay();
+
+// Initialize branch highlighting after functions are defined
+if (document.getElementById('branch-main')) {
+  highlightCurrentBranch();
+}
+
+// Initialize drag and drop for staging metaphor
+initializeStagingMetaphor();
+
+function selectFile(fileElement) {
+  document.querySelectorAll('.file').forEach(f => f.style.border = '1px solid var(--border)');
+  fileElement.style.border = '2px solid var(--blue)';
+  selectedFile = fileElement.textContent.split(' ')[0];
+}
+
+function updateDisplay() {
+  updateArea('working-files', currentFiles.working, 'modified');
+  updateArea('staging-files', currentFiles.staging, 'staged');
+  updateArea('repository-files', currentFiles.repository, 'committed');
+  updateArea('remote-files', currentFiles.remote, 'pushed');
+  updateStatus();
+}
+
+function updateArea(areaId, files, className) {
+  const area = document.getElementById(areaId);
+  if (!area) return;
+  area.innerHTML = '';
+  files.forEach(file => {
+    const fileDiv = document.createElement('div');
+    fileDiv.className = `file ${className} interactive`;
+    fileDiv.textContent = file;
+    fileDiv.onclick = () => selectFile(fileDiv);
+    area.appendChild(fileDiv);
+  });
+}
+
+function updateStatus() {
+  const status = document.getElementById('git-status');
+  const workingCount = currentFiles.working.length;
+  const stagingCount = currentFiles.staging.length;
+  const repoCount = currentFiles.repository.length;
+  const remoteCount = currentFiles.remote.length;
+  
+  let statusText = '<strong>Current State:</strong> ';
+  if (workingCount > 0) {
+    statusText += `${workingCount} modified file(s) in working directory. `;
+  }
+  if (stagingCount > 0) {
+    statusText += `${stagingCount} staged file(s) ready to commit. `;
+  }
+  if (repoCount > remoteCount) {
+    statusText += `${repoCount - remoteCount} commit(s) ahead of remote. `;
+  }
+  if (workingCount === 0 && stagingCount === 0 && repoCount === remoteCount) {
+    statusText += 'Everything up to date.';
+  }
+  
+  status.innerHTML = statusText;
+}
+
+function gitAdd() {
+  if (currentFiles.working.length > 0) {
+    const file = currentFiles.working.shift();
+    currentFiles.staging.push(file);
+    updateDisplay();
+    addToCommandHistory(`$ git add ${file}`, `Staged ${file} for commit`);
+  }
+}
+
+function gitCommit() {
+  if (currentFiles.staging.length > 0) {
+    const files = [...currentFiles.staging];
+    currentFiles.staging = [];
+    currentFiles.repository.push(...files);
+    updateDisplay();
+    addToCommandHistory(`$ git commit -m "Update ${files.join(', ')}"`, `[main ${generateHash()}] ${files.length} file(s) committed`);
+  }
+}
+
+function gitPush() {
+  const unpushed = currentFiles.repository.filter(f => !currentFiles.remote.includes(f));
+  if (unpushed.length > 0) {
+    currentFiles.remote = [...currentFiles.repository];
+    updateDisplay();
+    addToCommandHistory(`$ git push origin main`, `Pushed ${unpushed.length} file(s) to remote repository`);
+    
+    // Simulate remote update animation
+    const remoteArea = document.getElementById('remote-area');
+    remoteArea.style.animation = 'pulse 0.5s';
+    setTimeout(() => remoteArea.style.animation = '', 500);
+  } else {
+    addToCommandHistory(`$ git push origin main`, `Everything up-to-date`);
+  }
+}
+
+function gitPull() {
+  // Simulate pulling a new file from remote
+  const remoteFiles = ['config.json', 'api.js', 'test.html'];
+  const newFile = remoteFiles[Math.floor(Math.random() * remoteFiles.length)];
+  
+  if (!currentFiles.remote.includes(newFile)) {
+    currentFiles.remote.push(newFile);
+    currentFiles.repository.push(newFile);
+    updateDisplay();
+    addToCommandHistory(`$ git pull origin main`, `Pulled 1 new file from remote: ${newFile}`);
+  } else {
+    addToCommandHistory(`$ git pull origin main`, `Already up to date`);
+  }
+}
+
+function modifyFile() {
+  const files = ['about.html', 'styles.css', 'app.js', 'README.md'];
+  const randomFile = files[Math.floor(Math.random() * files.length)];
+  
+  if (!currentFiles.working.includes(randomFile)) {
+    currentFiles.working.push(randomFile);
+    updateDisplay();
+    addToCommandHistory(`# Modified ${randomFile}`, `File changed in working directory`);
+  }
+}
+
+function resetDemo() {
+  currentFiles = {
+    working: ['homepage.html'],
+    staging: [],
+    repository: [],
+    remote: []
+  };
+  updateDisplay();
+  document.getElementById('command-history').innerHTML = `$ git status<br/>
+On branch main<br/>
+Changes not staged for commit:<br/>
+&nbsp;&nbsp;modified: homepage.html<br/>`;
+}
+
+function addToCommandHistory(command, description) {
+  const history = document.getElementById('command-history');
+  history.innerHTML += `<br/>${command}<br/><span style="color: #888;">${description}</span><br/>`;
+  history.scrollTop = history.scrollHeight;
+}
+
+// Branch Management Functions
+window.createNewBranch = function() {
+  // Use a default name if prompt fails
+  var branchName = window.prompt('Enter branch name (e.g., feature-login):');
+  
+  // If user cancels, return
+  if (branchName === null) {
+    return;
+  }
+  
+  // If empty, use default name
+  if (branchName === '') {
+    branchName = 'feature-' + (Object.keys(branches).length);
+  }
+  
+  // Clean the name
+  branchName = branchName.trim();
+  
+  // Check if exists
+  if (branches[branchName]) {
+    alert('Branch already exists: ' + branchName);
+    return;
+  }
+  
+  // Create the branch
+  branches[branchName] = [];
+  for (var i = 0; i < branches[currentBranch].length; i++) {
+    branches[branchName].push(branches[currentBranch][i]);
+  }
+  
+  // Add to UI
+  var graph = document.getElementById('branch-graph');
+  var newBranch = document.createElement('div');
+  newBranch.className = 'branch-line';
+  newBranch.id = 'branch-' + branchName.replace(/\s+/g, '-');
+  
+  var html = '<span class="branch-name" style="color: var(--purple)">' + branchName + '</span>';
+  for (var j = 0; j < branches[branchName].length; j++) {
+    html += '<div class="commit-node feature" onclick="checkoutCommit(this, \'' + branches[branchName][j] + '\')">' + branches[branchName][j] + '</div>';
+  }
+  newBranch.innerHTML = html;
+  
+  graph.appendChild(newBranch);
+  
+  // Switch to new branch
+  currentBranch = branchName;
+  
+  addToCommandHistory('$ git checkout -b ' + branchName, 'Switched to a new branch: ' + branchName);
+  updateBranchStatus();
+  highlightCurrentBranch();
+}
+
+window.switchBranch = function() {
+  var availableBranches = Object.keys(branches);
+  if (availableBranches.length <= 1) {
+    alert('Create a feature branch first using "Create Branch" button!');
+    return;
+  }
+  
+  // Toggle between main and other branches
+  var otherBranches = [];
+  for (var i = 0; i < availableBranches.length; i++) {
+    if (availableBranches[i] !== currentBranch) {
+      otherBranches.push(availableBranches[i]);
+    }
+  }
+  
+  if (otherBranches.length === 0) {
+    alert('No other branches to switch to!');
+    return;
+  }
+  
+  var targetBranch = otherBranches[0];
+  
+  currentBranch = targetBranch;
+  addToCommandHistory('$ git checkout ' + targetBranch, 'Switched to branch: ' + targetBranch);
+  updateBranchStatus();
+  highlightCurrentBranch();
+}
+
+window.makeCommit = function() {
+  if (!currentBranch || !branches[currentBranch]) {
+    alert('Please select or create a branch first');
+    return;
+  }
+  
+  commitCounter++;
+  var commitId = String.fromCharCode(65 + commitCounter); // A, B, C, D, ...
+  branches[currentBranch].push(commitId);
+  
+  var branchElement = document.getElementById('branch-' + currentBranch.replace(/\s+/g, '-'));
+  if (branchElement) {
+    var newCommit = document.createElement('div');
+    newCommit.className = 'commit-node ' + (currentBranch === 'main' ? 'main' : 'feature');
+    newCommit.textContent = commitId;
+    newCommit.onclick = function() { checkoutCommit(newCommit, commitId); };
+    branchElement.appendChild(newCommit);
+  }
+  
+  addToCommandHistory('$ git commit -m "Add feature ' + commitId + '"', '[' + currentBranch + ' ' + generateHash() + '] 1 file changed');
+  updateBranchStatus();
+}
+
+window.mergeBranch = function() {
+  if (currentBranch === 'main') {
+    alert('First switch to a feature branch, then you can merge it to main');
+    return;
+  }
+  
+  var featureBranch = currentBranch;
+  var newCommits = [];
+  
+  // Find commits in feature branch that aren't in main
+  for (var i = 0; i < branches[featureBranch].length; i++) {
+    if (branches.main.indexOf(branches[featureBranch][i]) === -1) {
+      newCommits.push(branches[featureBranch][i]);
+    }
+  }
+  
+  if (newCommits.length === 0) {
+    addToCommandHistory('$ git merge ' + featureBranch, 'Already up to date');
+    return;
+  }
+  
+  // Highlight the commits being merged in the feature branch
+  var featureBranchElement = document.getElementById('branch-' + featureBranch.replace(/\s+/g, '-'));
+  if (featureBranchElement) {
+    var featureCommits = featureBranchElement.querySelectorAll('.commit-node');
+    featureCommits.forEach(function(node) {
+      if (newCommits.indexOf(node.textContent) !== -1) {
+        node.style.animation = 'pulse 1s';
+        node.style.boxShadow = '0 0 20px var(--emerald)';
+        setTimeout(function() {
+          node.style.animation = '';
+          node.style.boxShadow = '';
+        }, 2000);
+      }
+    });
+  }
+  
+  // Switch to main and merge
+  currentBranch = 'main';
+  for (var i = 0; i < newCommits.length; i++) {
+    branches.main.push(newCommits[i]);
+  }
+  
+  // Update main branch display
+  var mainBranch = document.getElementById('branch-main');
+  if (mainBranch) {
+    for (var i = 0; i < newCommits.length; i++) {
+      var newCommit = document.createElement('div');
+      newCommit.className = 'commit-node main';
+      newCommit.textContent = newCommits[i];
+      newCommit.onclick = (function(commitId) {
+        return function() { checkoutCommit(newCommit, commitId); };
+      })(newCommits[i]);
+      
+      // Add merge animation - highlight the new commits being merged
+      newCommit.style.background = 'var(--emerald)';
+      newCommit.style.transform = 'scale(1.3)';
+      newCommit.style.transition = 'all 0.5s ease';
+      
+      mainBranch.appendChild(newCommit);
+      
+      // Animate each commit with a delay
+      setTimeout((function(commit) {
+        return function() {
+          commit.style.background = 'var(--blue)';
+          commit.style.transform = 'scale(1)';
+        };
+      })(newCommit), 500 + (i * 200));
+    }
+  }
+  
+  addToCommandHistory('$ git checkout main', 'Switched to branch: main');
+  addToCommandHistory('$ git merge ' + featureBranch, 'Merged ' + newCommits.length + ' commits from ' + featureBranch);
+  updateBranchStatus();
+  highlightCurrentBranch();
+}
+
+window.deleteBranch = function() {
+  if (currentBranch === 'main') {
+    alert('Cannot delete main branch! Switch to a feature branch first.');
+    return;
+  }
+  
+  var branchToDelete = currentBranch;
+  currentBranch = 'main';
+  
+  // Remove from branches object
+  delete branches[branchToDelete];
+  
+  // Remove from UI
+  var elementId = 'branch-' + branchToDelete.replace(/\s+/g, '-');
+  var element = document.getElementById(elementId);
+  if (element && element.parentNode) {
+    element.parentNode.removeChild(element);
+  }
+  
+  addToCommandHistory('$ git checkout main', 'Switched to branch: main');
+  addToCommandHistory('$ git branch -d ' + branchToDelete, 'Deleted branch ' + branchToDelete);
+  updateBranchStatus();
+  highlightCurrentBranch();
+}
+
+window.resetBranches = function() {
+  branches = {
+    main: ['A', 'B', 'C']
+  };
+  currentBranch = 'main';
+  commitCounter = 3;
+  
+  var graph = document.getElementById('branch-graph');
+  graph.innerHTML = '<div class="branch-line active" id="branch-main">' +
+    '<span class="branch-name" style="color: var(--blue)">main</span>' +
+    '<div class="commit-node main" onclick="checkoutCommit(this, \'A\')">A</div>' +
+    '<div class="commit-node main" onclick="checkoutCommit(this, \'B\')">B</div>' +
+    '<div class="commit-node main" onclick="checkoutCommit(this, \'C\')">C</div>' +
+    '</div>';
+  updateBranchStatus();
+  highlightCurrentBranch();
+}
+
+function checkoutCommit(element, commitId) {
+  addToCommandHistory(`$ git checkout ${commitId}`, `HEAD is now at ${generateHash()} ${commitId}`);
+}
+
+function updateBranchStatus() {
+  const status = document.getElementById('branch-status');
+  const branchSpan = document.getElementById('current-branch');
+  branchSpan.textContent = currentBranch;
+  status.innerHTML = `<strong>Branch Status:</strong> On branch ${currentBranch} with ${branches[currentBranch].length} commits`;
+}
+
+function highlightCurrentBranch() {
+  // Remove active class from all branches
+  var allBranches = document.querySelectorAll('.branch-line');
+  for (var i = 0; i < allBranches.length; i++) {
+    allBranches[i].classList.remove('active');
+  }
+  
+  // Add active class to current branch
+  var currentBranchId = 'branch-' + currentBranch.replace(/\s+/g, '-');
+  var currentLine = document.getElementById(currentBranchId);
+  if (currentLine) {
+    currentLine.classList.add('active');
+  }
+}
+
+// Team Collaboration Functions
+function developerWork(developer) {
+  const card = document.getElementById(`dev-${developer}`);
+  card.classList.add('active');
+  
+  const devName = developer.charAt(0).toUpperCase() + developer.slice(1);
+  const branches = {
+    sarah: 'feature-ui',
+    mike: 'feature-auth',
+    alex: 'feature-deploy'
+  };
+  
+  addActivityLog(`${devName} created branch: ${branches[developer]}`);
+  
+  setTimeout(() => {
+    addActivityLog(`${devName} committed changes to ${branches[developer]}`);
+    
+    setTimeout(() => {
+      createPullRequest(developer, branches[developer]);
+      card.classList.remove('active');
+    }, 1500);
+  }, 1500);
+}
+
+function simulateFullWorkflow() {
+  // Clear previous activity
+  resetCollab();
+  
+  const developers = ['sarah', 'mike', 'alex'];
+  let delay = 0;
+  
+  developers.forEach(dev => {
+    setTimeout(() => developerWork(dev), delay);
+    delay += 3500;
+  });
+}
+
+function createPullRequest(developer, branchName) {
+  prIdCounter++;
+  const devName = developer.charAt(0).toUpperCase() + developer.slice(1);
+  
+  const pr = {
+    id: prIdCounter,
+    branch: branchName,
+    status: 'open',
+    author: devName,
+    description: getWorkDescription(developer)
+  };
+  
+  pullRequests.push(pr);
+  
+  const prContainer = document.getElementById('pr-container');
+  const prItem = document.createElement('div');
+  prItem.className = 'pr-item';
+  prItem.id = `pr-${pr.id}`;
+  prItem.innerHTML = `
+    <div>
+      <strong>PR #${pr.id}</strong>: ${branchName} → main
+      <div style="font-size: 12px; color: var(--muted)">${pr.description} by ${pr.author}</div>
+    </div>
+    <span class="pr-status ${pr.status}" id="pr-status-${pr.id}">${pr.status.toUpperCase()}</span>
+  `;
+  prContainer.appendChild(prItem);
+  
+  addActivityLog(`${pr.author} opened PR #${pr.id}: ${pr.description}`);
+}
+
+function getWorkDescription(developer) {
+  const descriptions = {
+    sarah: 'Homepage redesign with responsive layout',
+    mike: 'Implement JWT authentication system',
+    alex: 'Setup Docker and CI/CD pipeline'
+  };
+  return descriptions[developer];
+}
+
+function reviewPullRequest() {
+  const openPRs = pullRequests.filter(pr => pr.status === 'open');
+  if (openPRs.length === 0) {
+    alert('No open pull requests to review. Click "Start Work" on a developer first!');
+    return;
+  }
+  
+  const pr = openPRs[0];
+  pr.status = 'review';
+  
+  const statusElement = document.getElementById(`pr-status-${pr.id}`);
+  statusElement.className = 'pr-status review';
+  statusElement.textContent = 'IN REVIEW';
+  
+  addActivityLog(`🔍 Code review started for PR #${pr.id}`);
+  
+  setTimeout(() => {
+    addActivityLog(`✅ PR #${pr.id} approved after review`);
+  }, 1500);
+}
+
+function mergePullRequest() {
+  const reviewedPRs = pullRequests.filter(pr => pr.status === 'review' || pr.status === 'open');
+  if (reviewedPRs.length === 0) {
+    alert('No pull requests ready to merge. Create and review PRs first!');
+    return;
+  }
+  
+  const pr = reviewedPRs[0];
+  pr.status = 'merged';
+  
+  const statusElement = document.getElementById(`pr-status-${pr.id}`);
+  statusElement.className = 'pr-status merged';
+  statusElement.textContent = 'MERGED';
+  
+  addActivityLog(`🎉 PR #${pr.id} merged to main branch`);
+  addActivityLog(`${pr.author}'s ${pr.description} is now in production!`);
+}
+
+function resetCollab() {
+  pullRequests = [];
+  prIdCounter = 0;
+  document.getElementById('pr-container').innerHTML = '';
+  document.getElementById('collab-timeline').innerHTML = '<h3>Team Activity Log</h3>';
+  document.querySelectorAll('.developer-card').forEach(card => card.classList.remove('active'));
+}
+
+function addActivityLog(message) {
+  const timeline = document.getElementById('collab-timeline');
+  const item = document.createElement('div');
+  item.className = 'timeline-item';
+  item.style.animationDelay = '0s';
+  
+  const colors = ['var(--blue)', 'var(--purple)', 'var(--emerald)', 'var(--orange)'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
+  item.innerHTML = `
+    <div class="timeline-icon" style="background: ${color};">•</div>
+    <div>${time} - ${message}</div>
+  `;
+  
+  timeline.appendChild(item);
+  timeline.scrollTop = timeline.scrollHeight;
+}
+
+// Navigation functions for progressive disclosure
+function showRepositories() {
+  document.getElementById('repositories-stage').style.display = 'block';
+  document.getElementById('repositories-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showStagingMetaphor() {
+  document.getElementById('staging-metaphor').style.display = 'block';
+  document.getElementById('staging-metaphor').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showWorkflow() {
+  document.getElementById('workflow-stage').style.display = 'block';
+  document.getElementById('workflow-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showBranches() {
+  document.getElementById('branches-stage').style.display = 'block';
+  document.getElementById('branches-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showCollaboration() {
+  document.getElementById('collaboration-stage').style.display = 'block';
+  document.getElementById('collaboration-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showSummary() {
+  document.getElementById('summary-stage').style.display = 'block';
+  document.getElementById('summary-stage').scrollIntoView({ behavior: 'smooth' });
+}
+
+function generateHash() {
+  return Math.random().toString(36).substring(2, 9);
+}
+
+// Staging Metaphor Interactive Functions
+function initializeStagingMetaphor() {
+  // Set up drag and drop event listeners when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    setupDragAndDrop();
+  });
+  // Also try to set up immediately in case DOM is already loaded
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setupDragAndDrop();
+  }
+}
+
+function setupDragAndDrop() {
+  const stageArea = document.getElementById('stage-area');
+  const deskArea = document.getElementById('desk-area');
+  
+  if (!stageArea || !deskArea) return;
+  
+  // Add event listeners to all draggable files
+  document.querySelectorAll('.draggable-file').forEach(file => {
+    file.addEventListener('dragstart', handleDragStart);
+    file.addEventListener('dragend', handleDragEnd);
+  });
+  
+  // Set up drop zones
+  stageArea.addEventListener('dragover', handleDragOver);
+  stageArea.addEventListener('drop', handleDropToStage);
+  stageArea.addEventListener('dragleave', handleDragLeave);
+  stageArea.addEventListener('dragenter', handleDragEnter);
+  
+  deskArea.addEventListener('dragover', handleDragOver);
+  deskArea.addEventListener('drop', handleDropToDesk);
+}
+
+function handleDragStart(e) {
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.innerHTML);
+  e.dataTransfer.setData('filename', this.getAttribute('data-filename'));
+  this.style.opacity = '0.4';
+}
+
+function handleDragEnd(e) {
+  this.style.opacity = '1';
+  // Remove any drag-over styles
+  document.querySelectorAll('.drag-over').forEach(el => {
+    el.classList.remove('drag-over');
+  });
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDragEnter(e) {
+  this.style.background = 'rgba(253,126,20,.05)';
+}
+
+function handleDragLeave(e) {
+  this.style.background = 'white';
+}
+
+function handleDropToStage(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const filename = e.dataTransfer.getData('filename');
+  const stageArea = document.getElementById('stage-area');
+  const deskArea = document.getElementById('desk-area');
+  
+  // Remove the placeholder if it exists
+  const placeholder = document.getElementById('stage-placeholder');
+  if (placeholder) {
+    placeholder.style.display = 'none';
+  }
+  
+  // Find the original file element
+  const originalFile = document.querySelector(`.draggable-file[data-filename="${filename}"]`);
+  if (!originalFile || originalFile.parentElement === stageArea) return;
+  
+  // Move the file to stage
+  originalFile.style.border = '2px solid var(--orange)';
+  originalFile.querySelector('span').textContent = '(staged)';
+  originalFile.querySelector('span').style.color = 'var(--orange)';
+  stageArea.appendChild(originalFile);
+  
+  // Add to staged files array
+  if (!stagedFiles.includes(filename)) {
+    stagedFiles.push(filename);
+  }
+  
+  // Update snapshot button
+  updateSnapshotButton();
+  
+  // Reset background
+  stageArea.style.background = 'white';
+  
+  return false;
+}
+
+function handleDropToDesk(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const filename = e.dataTransfer.getData('filename');
+  const deskArea = document.getElementById('desk-area');
+  const stageArea = document.getElementById('stage-area');
+  
+  // Find the original file element
+  const originalFile = document.querySelector(`.draggable-file[data-filename="${filename}"]`);
+  if (!originalFile || originalFile.parentElement === deskArea) return;
+  
+  // Move the file back to desk
+  originalFile.style.border = '2px solid var(--yellow)';
+  originalFile.querySelector('span').textContent = '(modified)';
+  originalFile.querySelector('span').style.color = 'var(--yellow)';
+  deskArea.appendChild(originalFile);
+  
+  // Remove from staged files array
+  stagedFiles = stagedFiles.filter(f => f !== filename);
+  
+  // Show placeholder if stage is empty
+  if (stageArea.children.length === 1) { // Only placeholder left
+    const placeholder = document.getElementById('stage-placeholder');
+    if (placeholder) {
+      placeholder.style.display = 'block';
+    }
+  }
+  
+  // Update snapshot button
+  updateSnapshotButton();
+  
+  return false;
+}
+
+function updateSnapshotButton() {
+  const button = document.getElementById('take-snapshot');
+  const message = document.getElementById('snapshot-message');
+  
+  if (stagedFiles.length > 0) {
+    button.disabled = false;
+    button.style.opacity = '1';
+    button.style.cursor = 'pointer';
+    message.textContent = `Ready to snapshot ${stagedFiles.length} file(s)`;
+    message.style.color = 'var(--emerald)';
+  } else {
+    button.disabled = true;
+    button.style.opacity = '0.5';
+    button.style.cursor = 'not-allowed';
+    message.textContent = 'Stage some files first!';
+    message.style.color = 'var(--muted)';
+  }
+}
+
+function takeSnapshot() {
+  if (stagedFiles.length === 0) return;
+  
+  snapshotCounter++;
+  const snapshotFiles = [...stagedFiles];
+  
+  // Create snapshot card
+  const album = document.getElementById('photo-album');
+  
+  // Remove placeholder text if this is the first snapshot
+  if (snapshotCounter === 1) {
+    album.innerHTML = '';
+  }
+  
+  const snapshot = document.createElement('div');
+  snapshot.style.cssText = 'background: white; border: 2px solid var(--emerald); border-radius: 12px; padding: 12px; min-width: 150px; text-align: center;';
+  snapshot.innerHTML = `
+    <div style="font-size: 24px; margin-bottom: 8px;">📸</div>
+    <div style="font-weight: bold; color: var(--emerald); margin-bottom: 4px;">Snapshot #${snapshotCounter}</div>
+    <div style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">${new Date().toLocaleTimeString()}</div>
+    <div style="font-size: 12px; text-align: left;">
+      ${snapshotFiles.map(f => `<div>• ${f}</div>`).join('')}
+    </div>
+  `;
+  
+  album.appendChild(snapshot);
+  
+  // Animate the snapshot
+  snapshot.style.animation = 'fadeIn 0.5s ease-in';
+  
+  // Clear the stage
+  const stageArea = document.getElementById('stage-area');
+  const deskArea = document.getElementById('desk-area');
+  
+  // Move all staged files back to desk but mark them as "committed"
+  document.querySelectorAll('#stage-area .draggable-file').forEach(file => {
+    file.style.border = '2px solid var(--emerald)';
+    file.querySelector('span').textContent = '(committed)';
+    file.querySelector('span').style.color = 'var(--emerald)';
+    deskArea.appendChild(file);
+  });
+  
+  // Show placeholder again
+  const placeholder = document.getElementById('stage-placeholder');
+  if (placeholder) {
+    placeholder.style.display = 'block';
+  }
+  
+  // Reset staged files
+  stagedFiles = [];
+  updateSnapshotButton();
+  
+  // Show success message
+  const message = document.getElementById('snapshot-message');
+  message.textContent = '✅ Snapshot taken! Files are now part of your project history.';
+  message.style.color = 'var(--emerald)';
+  
+  setTimeout(() => {
+    message.textContent = 'Stage some files first!';
+    message.style.color = 'var(--muted)';
+  }, 3000);
+  
+  // Scroll album to show new snapshot
+  album.scrollLeft = album.scrollWidth;
+}
+
+</script>
+</body>
+</html>
