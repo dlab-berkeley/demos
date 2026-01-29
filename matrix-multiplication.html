@@ -296,6 +296,58 @@
       transform: translateY(-2px);
     }
 
+    .next-btn {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 2rem auto 0;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+
+    .next-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+    }
+
+    .next-btn:active {
+      transform: translateY(0);
+    }
+
+    .progress-bar {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .progress-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .progress-dot.active {
+      background: var(--blue);
+      transform: scale(1.2);
+    }
+
+    .progress-dot.completed {
+      background: var(--emerald);
+    }
+
     .btn-secondary {
       background: var(--panel);
       color: var(--text);
@@ -711,6 +763,17 @@
       <p>This demo will help you understand <strong>what</strong> matrix multiplication actually does (not just how to compute it) and <strong>why</strong> it's the perfect operation for neural networks.</p>
     </div>
 
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-dot active" data-stage="1" onclick="goToStage(1)"></div>
+      <div class="progress-dot" data-stage="2" onclick="goToStage(2)"></div>
+      <div class="progress-dot" data-stage="3" onclick="goToStage(3)"></div>
+      <div class="progress-dot" data-stage="4" onclick="goToStage(4)"></div>
+      <div class="progress-dot" data-stage="5" onclick="goToStage(5)"></div>
+      <div class="progress-dot" data-stage="6" onclick="goToStage(6)"></div>
+      <div class="progress-dot" data-stage="7" onclick="goToStage(7)"></div>
+      <div class="progress-dot" data-stage="8" onclick="goToStage(8)"></div>
+    </div>
+
     <!-- Stage 1: The Basic Idea -->
     <div class="stage" id="stage1">
       <h2><span class="stage-num">1</span> One Token, Three Features</h2>
@@ -743,10 +806,12 @@
       <div class="explanation">
         <p><strong>Remember:</strong> "plural-ish" and "action-ish" are fictional labels we invented! In real models, dimensions don't have neat meanings. But the math works identically—so this intuition will serve you well.</p>
       </div>
+
+      <button class="next-btn" onclick="showStage(2)">Next: Weight Matrices →</button>
     </div>
 
     <!-- Stage 2: The Weight Matrix as Learned Lenses -->
-    <div class="stage" id="stage2">
+    <div class="stage" id="stage2" style="display: none;">
       <h2><span class="stage-num">2</span> Weight Matrix: Learned Pattern Detectors</h2>
 
       <p>Now we want to create <strong>2 new features</strong> from those 3 inputs. The weight matrix W contains learned patterns—each row is like a "lens" or "question" the model asks about the input:</p>
@@ -803,10 +868,12 @@
         <p><strong>Each row of W</strong> = a recipe card that says how much of each ingredient to use</p>
         <p><strong>y</strong> = the dishes you make using those recipes</p>
       </div>
+
+      <button class="next-btn" onclick="showStage(3)">Next: The Dot Product →</button>
     </div>
 
     <!-- Stage 3: The Dot Product -->
-    <div class="stage" id="stage3">
+    <div class="stage" id="stage3" style="display: none;">
       <h2><span class="stage-num">3</span> The Dot Product: Measuring Alignment</h2>
 
       <div class="explanation">
@@ -891,10 +958,12 @@
       <div class="explanation success">
         <p><strong>Every output feature depends on ALL input features.</strong> Meaning emerges from combinations, not from single values "becoming" other values. The weight matrix W defines what counts as a meaningful combination.</p>
       </div>
+
+      <button class="next-btn" onclick="showStage(4)">Next: Dimension Rules →</button>
     </div>
 
     <!-- Stage 4: Dimension Rules -->
-    <div class="stage" id="stage4">
+    <div class="stage" id="stage4" style="display: none;">
       <h2><span class="stage-num">4</span> The Dimension Rule: Inner Dimensions Must Match</h2>
 
       <div class="explanation warning">
@@ -928,10 +997,12 @@
         <h4>Why must dimensions match?</h4>
         <p>Think of it like a zipper: each element in a row of X needs a partner element in a column of W to multiply with. If there are 3 elements in the row but only 2 in the column, some elements have no partner!</p>
       </div>
+
+      <button class="next-btn" onclick="showStage(5)">Next: Multiple Tokens →</button>
     </div>
 
     <!-- Stage 5: Multiple Tokens -->
-    <div class="stage" id="stage5">
+    <div class="stage" id="stage5" style="display: none;">
       <h2><span class="stage-num">5</span> Multiple Tokens: Batch Processing</h2>
 
       <p>In practice, LLMs process many tokens at once. Each row of X is a different token:</p>
@@ -1012,10 +1083,12 @@
         <h4>Calculating <span id="cellLabel">y₁₁</span>:</h4>
         <div class="dot-product-steps" id="multiDotSteps"></div>
       </div>
+
+      <button class="next-btn" onclick="showStage(6)">Next: Build Your Own →</button>
     </div>
 
     <!-- Stage 6: Drag and Drop Builder -->
-    <div class="stage" id="stage6">
+    <div class="stage" id="stage6" style="display: none;">
       <h2><span class="stage-num">6</span> Build Your Own: Drag & Drop</h2>
 
       <p>Drag numbers from the bank into the matrices to see how different values affect the output. This helps build intuition for how weight matrices transform inputs.</p>
@@ -1104,10 +1177,12 @@
           <li>Set the input to [1, 0, 0] to see what the first column of W contributes</li>
         </ul>
       </div>
+
+      <button class="next-btn" onclick="showStage(7)">Next: Test Yourself →</button>
     </div>
 
     <!-- Stage 7: Try It Yourself -->
-    <div class="stage" id="stage7">
+    <div class="stage" id="stage7" style="display: none;">
       <h2><span class="stage-num">7</span> Test Your Understanding</h2>
 
       <div class="quiz-section">
@@ -1168,10 +1243,12 @@
           <p><strong>Hint:</strong> y₁₁ = (row 1 of X) · (col 1 of W) = 1×2 + 2×1 = ?</p>
         </div>
       </div>
+
+      <button class="next-btn" onclick="showStage(8)" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">Next: Connection to Real LLMs →</button>
     </div>
 
     <!-- Stage 8: LLM Connection -->
-    <div class="stage" id="stage8">
+    <div class="stage" id="stage8" style="display: none;">
       <h2><span class="stage-num">8</span> In Real LLMs</h2>
 
       <div class="llm-context">
@@ -1202,7 +1279,7 @@
     </div>
 
     <!-- Key Takeaways -->
-    <div class="intro" style="background: linear-gradient(135deg, #d1e7dd 0%, #e8f5e9 100%); border-left: 4px solid var(--emerald);">
+    <div class="intro" id="keyTakeaways" style="display: none; background: linear-gradient(135deg, #d1e7dd 0%, #e8f5e9 100%); border-left: 4px solid var(--emerald);">
       <h2>Key Takeaways</h2>
       <ul>
         <li><strong>Matrix multiplication transforms features:</strong> We're not keeping the original features—we're building new, more useful ones for the next layer.</li>
@@ -1737,6 +1814,54 @@
       dragW.values = dragW.values.map(row => row.map(() => Math.floor(Math.random() * 7) - 2));
       updateDragMatrixDisplay();
     });
+
+    // Stage Navigation
+    let currentStage = 1;
+    const totalStages = 8;
+
+    function showStage(stageNum) {
+      // Hide current stage
+      const currentEl = document.getElementById(`stage${currentStage}`);
+      if (currentEl) currentEl.style.display = 'none';
+
+      // Show new stage
+      const newEl = document.getElementById(`stage${stageNum}`);
+      if (newEl) {
+        newEl.style.display = 'block';
+        // Scroll to top of stage
+        newEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Show Key Takeaways when reaching stage 8
+      const takeaways = document.getElementById('keyTakeaways');
+      if (takeaways) {
+        takeaways.style.display = stageNum === 8 ? 'block' : 'none';
+      }
+
+      // Update progress dots
+      updateProgressBar(stageNum);
+      currentStage = stageNum;
+    }
+
+    function goToStage(stageNum) {
+      // Only allow going to completed stages or current+1
+      if (stageNum <= currentStage || stageNum === currentStage + 1) {
+        showStage(stageNum);
+      }
+    }
+
+    function updateProgressBar(activeStage) {
+      const dots = document.querySelectorAll('.progress-dot');
+      dots.forEach((dot, index) => {
+        const stageNum = index + 1;
+        dot.classList.remove('active', 'completed');
+        if (stageNum === activeStage) {
+          dot.classList.add('active');
+        } else if (stageNum < activeStage) {
+          dot.classList.add('completed');
+        }
+      });
+    }
 
     // Initialize
     updateDotProductDisplay(0);
