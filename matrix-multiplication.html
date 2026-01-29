@@ -716,18 +716,18 @@
       <h2><span class="stage-num">1</span> One Token, Three Features</h2>
 
       <div class="explanation warning">
-        <p><strong>Important simplification:</strong> Real LLMs use vectors with 768 to 12,288+ dimensions, not 3. And those dimensions don't map to human concepts like "plural" or "emotion"—they're abstract patterns that emerge from training on text. We're using made-up labels here purely to build intuition for the math.</p>
+        <p><strong>A helpful fiction:</strong> Real LLMs use vectors with 768 to 12,288+ dimensions, not 3. And those dimensions don't map neatly to human concepts—they're abstract patterns learned from training data. But to build intuition, let's <em>pretend</em> we can label them with made-up meanings.</p>
       </div>
 
-      <p>For this demo, pretend a token is represented by just 3 numbers:</p>
+      <p>Imagine a single token is represented by just 3 numbers, where each number captures some aspect of the word:</p>
 
       <div class="matrix-container">
         <div class="matrix-wrapper">
           <div class="matrix-label">Token "running"</div>
           <div class="feature-labels">
-            <div class="feature-label">feature 1</div>
-            <div class="feature-label">feature 2</div>
-            <div class="feature-label">feature 3</div>
+            <div class="feature-label">plural-ish</div>
+            <div class="feature-label">past-ish</div>
+            <div class="feature-label">action-ish</div>
           </div>
           <div class="matrix" id="token-x">
             <div class="matrix-row">
@@ -741,7 +741,7 @@
       </div>
 
       <div class="explanation">
-        <p><strong>What are these numbers?</strong> In reality, nobody knows exactly what each dimension "means." They're patterns the model discovered during training—not human-interpretable concepts. The math works the same regardless of what the dimensions represent.</p>
+        <p><strong>Remember:</strong> "plural-ish" and "action-ish" are fictional labels we invented! In real models, dimensions don't have neat meanings. But the math works identically—so this intuition will serve you well.</p>
       </div>
     </div>
 
@@ -749,15 +749,15 @@
     <div class="stage" id="stage2">
       <h2><span class="stage-num">2</span> Weight Matrix: Learned Pattern Detectors</h2>
 
-      <p>Now we want to create <strong>2 new features</strong> from those 3 inputs. The weight matrix W contains learned patterns—each row is like a "lens" that combines the input features in a specific way:</p>
+      <p>Now we want to create <strong>2 new features</strong> from those 3 inputs. The weight matrix W contains learned patterns—each row is like a "lens" or "question" the model asks about the input:</p>
 
       <div class="matrix-container">
         <div class="matrix-wrapper">
           <div class="matrix-label">Weight Matrix W</div>
           <div class="feature-labels">
-            <div class="feature-label">input 1</div>
-            <div class="feature-label">input 2</div>
-            <div class="feature-label">input 3</div>
+            <div class="feature-label">plural-ish</div>
+            <div class="feature-label">past-ish</div>
+            <div class="feature-label">action-ish</div>
           </div>
           <div class="matrix-with-labels">
             <div class="matrix" id="weight-w">
@@ -773,8 +773,8 @@
               </div>
             </div>
             <div class="row-labels-inline">
-              <div class="row-label-inline">output feature 1</div>
-              <div class="row-label-inline">output feature 2</div>
+              <div class="row-label-inline">"intensity" detector</div>
+              <div class="row-label-inline">"narrative" detector</div>
             </div>
           </div>
         </div>
@@ -783,18 +783,18 @@
       <div class="concept-cards">
         <div class="concept-card">
           <h4>Row 1: [1, 0, 2]</h4>
-          <p>Weights input 1 by ×1, ignores input 2 (×0), and strongly weights input 3 (×2)</p>
-          <p><strong>→ Produces output feature 1</strong></p>
+          <p>Cares about plural (×1), ignores past (×0), strongly weights action (×2)</p>
+          <p><strong>→ Maybe detecting: intensity or energy?</strong></p>
         </div>
         <div class="concept-card">
           <h4>Row 2: [-1, 3, 1]</h4>
-          <p>Subtracts input 1 (×-1), strongly weights input 2 (×3), and adds input 3 (×1)</p>
-          <p><strong>→ Produces output feature 2</strong></p>
+          <p>Penalizes plural (×-1), strongly weights past (×3), slightly weights action (×1)</p>
+          <p><strong>→ Maybe detecting: storytelling mode?</strong></p>
         </div>
       </div>
 
       <div class="explanation warning">
-        <p><strong>Remember:</strong> In real neural networks, these weights are learned automatically during training. The model discovers what combinations are useful—humans don't design them. We also can't easily interpret what any single weight "means."</p>
+        <p><strong>Reality check:</strong> These interpretations ("intensity", "narrative") are stories we're telling ourselves! In real networks, weights are learned automatically and don't have clean meanings. But thinking this way helps build intuition for how weighted combinations create new representations.</p>
       </div>
 
       <div class="analogy-box">
@@ -881,7 +881,7 @@
             </div>
           </div>
           <div class="final-result" id="finalResult">
-            y₁ = 8 (this becomes output feature 1)
+            y₁ = 8 → Strong "intensity" signal (in our fiction)
           </div>
         </div>
 
@@ -940,9 +940,9 @@
         <div class="matrix-wrapper">
           <div class="matrix-label">X (2 tokens × 3 features)</div>
           <div class="feature-labels">
-            <div class="feature-label">input 1</div>
-            <div class="feature-label">input 2</div>
-            <div class="feature-label">input 3</div>
+            <div class="feature-label">plural</div>
+            <div class="feature-label">past</div>
+            <div class="feature-label">action</div>
           </div>
           <div class="matrix" id="multi-x">
             <div class="matrix-row">
@@ -1339,8 +1339,8 @@
 
       // Update final result message
       const messages = [
-        `y₁ = ${sum} (output feature 1)`,
-        `y₂ = ${sum} (output feature 2)`
+        `y₁ = ${sum} → ${sum > 5 ? 'Strong' : sum > 0 ? 'Weak' : 'Negative'} "intensity" (in our fiction)`,
+        `y₂ = ${sum} → ${sum > 5 ? 'Strong' : sum > 0 ? 'Weak' : 'Negative'} "narrative" signal`
       ];
       finalResult.textContent = messages[rowIndex];
     }
