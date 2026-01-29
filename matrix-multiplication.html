@@ -715,17 +715,19 @@
     <div class="stage" id="stage1">
       <h2><span class="stage-num">1</span> One Token, Three Features</h2>
 
-      <div class="explanation">
-        <p>Imagine a single word (token) in an LLM is represented by just 3 numbers. These aren't literal meanings—they're abstract features the model has learned:</p>
+      <div class="explanation warning">
+        <p><strong>Important simplification:</strong> Real LLMs use vectors with 768 to 12,288+ dimensions, not 3. And those dimensions don't map to human concepts like "plural" or "emotion"—they're abstract patterns that emerge from training on text. We're using made-up labels here purely to build intuition for the math.</p>
       </div>
+
+      <p>For this demo, pretend a token is represented by just 3 numbers:</p>
 
       <div class="matrix-container">
         <div class="matrix-wrapper">
           <div class="matrix-label">Token "running"</div>
           <div class="feature-labels">
-            <div class="feature-label">plural-ish</div>
-            <div class="feature-label">past-ish</div>
-            <div class="feature-label">emotion-ish</div>
+            <div class="feature-label">feature 1</div>
+            <div class="feature-label">feature 2</div>
+            <div class="feature-label">feature 3</div>
           </div>
           <div class="matrix" id="token-x">
             <div class="matrix-row">
@@ -739,7 +741,7 @@
       </div>
 
       <div class="explanation">
-        <p><strong>Key insight:</strong> These features don't have clear human meanings—they're whatever patterns the model found useful during training. The numbers represent "how much" of each feature applies to this token.</p>
+        <p><strong>What are these numbers?</strong> In reality, nobody knows exactly what each dimension "means." They're patterns the model discovered during training—not human-interpretable concepts. The math works the same regardless of what the dimensions represent.</p>
       </div>
     </div>
 
@@ -747,15 +749,15 @@
     <div class="stage" id="stage2">
       <h2><span class="stage-num">2</span> Weight Matrix: Learned Pattern Detectors</h2>
 
-      <p>Now we want to create <strong>2 new features</strong> from those 3 inputs. The weight matrix W contains learned patterns—each row is like a "lens" or "question" the model asks about the input:</p>
+      <p>Now we want to create <strong>2 new features</strong> from those 3 inputs. The weight matrix W contains learned patterns—each row is like a "lens" that combines the input features in a specific way:</p>
 
       <div class="matrix-container">
         <div class="matrix-wrapper">
           <div class="matrix-label">Weight Matrix W</div>
           <div class="feature-labels">
-            <div class="feature-label">plural-ish</div>
-            <div class="feature-label">past-ish</div>
-            <div class="feature-label">emotion-ish</div>
+            <div class="feature-label">input 1</div>
+            <div class="feature-label">input 2</div>
+            <div class="feature-label">input 3</div>
           </div>
           <div class="matrix-with-labels">
             <div class="matrix" id="weight-w">
@@ -771,8 +773,8 @@
               </div>
             </div>
             <div class="row-labels-inline">
-              <div class="row-label-inline">Lens 1: "emotional intensity"</div>
-              <div class="row-label-inline">Lens 2: "narrative mode"</div>
+              <div class="row-label-inline">output feature 1</div>
+              <div class="row-label-inline">output feature 2</div>
             </div>
           </div>
         </div>
@@ -781,14 +783,18 @@
       <div class="concept-cards">
         <div class="concept-card">
           <h4>Row 1: [1, 0, 2]</h4>
-          <p>"I care about plural-ish (×1), ignore past-ish (×0), and really care about emotion-ish (×2)"</p>
-          <p><strong>→ Detects: Emotional intensity</strong></p>
+          <p>Weights input 1 by ×1, ignores input 2 (×0), and strongly weights input 3 (×2)</p>
+          <p><strong>→ Produces output feature 1</strong></p>
         </div>
         <div class="concept-card">
           <h4>Row 2: [-1, 3, 1]</h4>
-          <p>"I penalize plural-ish (×-1), strongly weight past-ish (×3), and slightly care about emotion-ish (×1)"</p>
-          <p><strong>→ Detects: Narrative/storytelling mode</strong></p>
+          <p>Subtracts input 1 (×-1), strongly weights input 2 (×3), and adds input 3 (×1)</p>
+          <p><strong>→ Produces output feature 2</strong></p>
         </div>
+      </div>
+
+      <div class="explanation warning">
+        <p><strong>Remember:</strong> In real neural networks, these weights are learned automatically during training. The model discovers what combinations are useful—humans don't design them. We also can't easily interpret what any single weight "means."</p>
       </div>
 
       <div class="analogy-box">
@@ -875,7 +881,7 @@
             </div>
           </div>
           <div class="final-result" id="finalResult">
-            y₁ = 8 → High emotional intensity!
+            y₁ = 8 (this becomes output feature 1)
           </div>
         </div>
 
@@ -934,9 +940,9 @@
         <div class="matrix-wrapper">
           <div class="matrix-label">X (2 tokens × 3 features)</div>
           <div class="feature-labels">
-            <div class="feature-label">plural</div>
-            <div class="feature-label">past</div>
-            <div class="feature-label">emotion</div>
+            <div class="feature-label">input 1</div>
+            <div class="feature-label">input 2</div>
+            <div class="feature-label">input 3</div>
           </div>
           <div class="matrix" id="multi-x">
             <div class="matrix-row">
@@ -1333,8 +1339,8 @@
 
       // Update final result message
       const messages = [
-        `y₁ = ${sum} → ${sum > 5 ? 'High' : sum > 0 ? 'Medium' : 'Low'} emotional intensity!`,
-        `y₂ = ${sum} → ${sum > 5 ? 'Strong' : sum > 0 ? 'Some' : 'Little'} narrative mode!`
+        `y₁ = ${sum} (output feature 1)`,
+        `y₂ = ${sum} (output feature 2)`
       ];
       finalResult.textContent = messages[rowIndex];
     }
