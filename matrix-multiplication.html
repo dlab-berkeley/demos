@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>D-Lab - Matrix Multiplication for LLMs</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --panel:#f8f9fa;
+      --muted:#6c757d;
+      --text:#212529;
+      --blue:#0d6efd;
+      --indigo:#6610f2;
+      --emerald:#198754;
+      --orange:#fd7e14;
+      --border:#dee2e6;
+      --red:#dc3545;
+      --purple:#6f42c1;
+      --yellow:#ffc107;
+      --teal:#20c997;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:var(--bg); color:var(--text); line-height: 1.5;
+    }
+    .wrap{max-width:1200px;margin:32px auto;padding:0 20px}
+    .course-header{text-align:center;margin-bottom:20px;padding:16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)}
+    .course-logo{width:180px;height:auto;margin-bottom:8px}
+    h1{font-size:32px;margin:0 0 12px; text-align: center;}
+    p.lead{color:var(--muted);margin:0 0 24px; font-size: 18px; text-align: center;}
+
+    .intro{
+      background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px;
+      margin-bottom: 24px; box-shadow:0 2px 8px rgba(0,0,0,.1);
+    }
+    .intro h2{margin:0 0 12px; color:var(--blue);}
+    .intro p{margin:12px 0; font-size: 16px;}
+
+    .stage {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stage:last-of-type {
+      border-bottom: none;
+    }
+
+    .stage h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .stage-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: var(--blue);
+      color: white;
+      border-radius: 50%;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .explanation {
+      background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 100%);
+      border-left: 4px solid var(--blue);
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .explanation.warning {
+      background: linear-gradient(135deg, #fff3cd 0%, #fffbeb 100%);
+      border-left-color: var(--orange);
+    }
+
+    .explanation.success {
+      background: linear-gradient(135deg, #d1e7dd 0%, #e8f5e9 100%);
+      border-left-color: var(--emerald);
+    }
+
+    /* Matrix Display Styles */
+    .matrix-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+      justify-content: center;
+    }
+
+    .matrix-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .matrix-label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .matrix-sublabel {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .matrix {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 0.5rem;
+      background: var(--panel);
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .matrix::before,
+    .matrix::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      border: 3px solid var(--text);
+    }
+
+    .matrix::before {
+      left: -4px;
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+    }
+
+    .matrix::after {
+      right: -4px;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .matrix-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .matrix-cell {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    .matrix-cell.editable {
+      cursor: text;
+    }
+
+    .matrix-cell input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .matrix-cell input:focus {
+      outline: none;
+    }
+
+    .matrix-cell.highlight-row {
+      background: #ffeaa7;
+      border-color: var(--orange);
+    }
+
+    .matrix-cell.highlight-col {
+      background: #81ecec;
+      border-color: var(--teal);
+    }
+
+    .matrix-cell.highlight-result {
+      background: #a29bfe;
+      border-color: var(--purple);
+      transform: scale(1.1);
+    }
+
+    .matrix-cell.highlight-product {
+      background: #55efc4;
+      border-color: var(--emerald);
+    }
+
+    .operator {
+      font-size: 2rem;
+      font-weight: 300;
+      color: var(--muted);
+      padding: 0 0.5rem;
+    }
+
+    /* Dot Product Visualization */
+    .dot-product-viz {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .dot-product-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-size: 1rem;
+    }
+
+    .dot-step {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .dot-step.active {
+      background: #dfe6e9;
+      transform: translateX(10px);
+    }
+
+    .dot-step .multiply {
+      color: var(--orange);
+      font-weight: 600;
+    }
+
+    .dot-step .result {
+      color: var(--emerald);
+      font-weight: 700;
+    }
+
+    .dot-step .sum-symbol {
+      color: var(--blue);
+    }
+
+    .final-result {
+      font-size: 1.25rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--purple), var(--indigo));
+      color: white;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    /* Interactive Controls */
+    .controls {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0b5ed7;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--panel);
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-secondary.active {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+    }
+
+    /* Feature Labels */
+    .feature-labels {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 0.5rem;
+      padding-left: 0.5rem;
+    }
+
+    .feature-label {
+      width: 54px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .row-labels {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: center;
+      padding-right: 0.5rem;
+    }
+
+    .row-label {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      font-size: 0.7rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Matrix with inline row labels */
+    .matrix-with-labels {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .row-labels-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 0.5rem;
+    }
+
+    .row-label-inline {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      white-space: nowrap;
+      padding-left: 0.5rem;
+    }
+
+    .row-label-inline::before {
+      content: '←';
+      margin-right: 0.5rem;
+      color: var(--border);
+    }
+
+    /* Dimension Display */
+    .dimension-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .dim-box {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-weight: 600;
+    }
+
+    .dim-x {
+      background: #ffeaa7;
+      border: 2px solid var(--orange);
+    }
+
+    .dim-w {
+      background: #81ecec;
+      border: 2px solid var(--teal);
+    }
+
+    .dim-y {
+      background: #a29bfe;
+      border: 2px solid var(--purple);
+    }
+
+    .dim-match {
+      color: var(--emerald);
+      font-weight: 700;
+    }
+
+    .dim-mismatch {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    /* Interactive Playground */
+    .playground {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+    }
+
+    .playground h3 {
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .playground-icon {
+      font-size: 1.5rem;
+    }
+
+    /* Draggable Numbers */
+    .number-bank {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      min-height: 60px;
+      border: 2px dashed var(--border);
+    }
+
+    .draggable-number {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--blue), var(--indigo));
+      color: white;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: grab;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .draggable-number:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .draggable-number:active {
+      cursor: grabbing;
+    }
+
+    .draggable-number.dragging {
+      opacity: 0.5;
+    }
+
+    .matrix-cell.drop-target {
+      border: 2px dashed var(--blue);
+      background: #e8f4fd;
+    }
+
+    .matrix-cell.drop-hover {
+      border-color: var(--emerald);
+      background: #d1e7dd;
+      transform: scale(1.05);
+    }
+
+    /* Quiz Section */
+    .quiz-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 2rem;
+      color: white;
+      margin: 2rem 0;
+    }
+
+    .quiz-section h3 {
+      margin-top: 0;
+    }
+
+    .quiz-input {
+      width: 80px;
+      height: 50px;
+      border: 3px solid white;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .quiz-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .quiz-input.correct {
+      background: var(--emerald);
+      border-color: var(--emerald);
+    }
+
+    .quiz-input.incorrect {
+      background: var(--red);
+      border-color: var(--red);
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.success {
+      background: rgba(25, 135, 84, 0.3);
+    }
+
+    .feedback.error {
+      background: rgba(220, 53, 69, 0.3);
+    }
+
+    /* Concept Cards */
+    .concept-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .concept-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .concept-card:hover {
+      border-color: var(--blue);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .concept-card h4 {
+      margin: 0 0 0.75rem 0;
+      color: var(--blue);
+    }
+
+    .concept-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    /* Analogy Box */
+    .analogy-box {
+      background: linear-gradient(135deg, #fff9e6 0%, #fff5d6 100%);
+      border: 2px solid var(--yellow);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .analogy-box h4 {
+      margin: 0 0 0.75rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* LLM Context */
+    .llm-context {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 12px;
+      padding: 2rem;
+      color: #eee;
+      margin: 2rem 0;
+    }
+
+    .llm-context h3 {
+      margin-top: 0;
+      color: #81ecec;
+    }
+
+    .llm-context code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      color: #ffeaa7;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .wrap {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .matrix-container {
+        flex-direction: column;
+      }
+
+      .matrix-cell {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+      }
+
+      .feature-label, .row-label {
+        font-size: 0.6rem;
+      }
+
+      .feature-label {
+        width: 44px;
+      }
+
+      .row-label {
+        height: 40px;
+      }
+
+      .operator {
+        transform: rotate(90deg);
+        padding: 0.5rem 0;
+      }
+
+      .playground {
+        padding: 1rem;
+      }
+    }
+
+    /* Animation for step-by-step */
+    .step-highlight {
+      animation: pulse 0.5s ease;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Token visualization */
+    .token-viz {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.75rem;
+      background: var(--panel);
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      margin: 0.25rem;
+    }
+
+    .token-viz.input {
+      background: #ffeaa7;
+      border: 1px solid var(--orange);
+    }
+
+    .token-viz.output {
+      background: #a29bfe;
+      border: 1px solid var(--purple);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="course-header">
+      <img src="img/dlab-bubble-logo-2025.png" alt="D-Lab Logo" class="course-logo">
+    </div>
+
+    <h1>Matrix Multiplication in LLMs</h1>
+    <p class="lead">Understanding how neural networks transform information through matrix operations</p>
+
+    <div class="intro">
+      <h2>Why Matrix Multiplication Matters</h2>
+      <p>Every time you use ChatGPT, Claude, or any Large Language Model, billions of matrix multiplications happen behind the scenes. Each multiplication transforms your input text into new representations, building up layers of understanding until the model can generate a response.</p>
+      <p>This demo will help you understand <strong>what</strong> matrix multiplication actually does (not just how to compute it) and <strong>why</strong> it's the perfect operation for neural networks.</p>
+    </div>
+
+    <!-- Stage 1: The Basic Idea -->
+    <div class="stage" id="stage1">
+      <h2><span class="stage-num">1</span> One Token, Three Features</h2>
+
+      <div class="explanation">
+        <p>Imagine a single word (token) in an LLM is represented by just 3 numbers. These aren't literal meanings—they're abstract features the model has learned:</p>
+      </div>
+
+      <div class="matrix-container">
+        <div class="matrix-wrapper">
+          <div class="matrix-label">Token "running"</div>
+          <div class="feature-labels">
+            <div class="feature-label">plural-ish</div>
+            <div class="feature-label">past-ish</div>
+            <div class="feature-label">emotion-ish</div>
+          </div>
+          <div class="matrix" id="token-x">
+            <div class="matrix-row">
+              <div class="matrix-cell">2</div>
+              <div class="matrix-cell">1</div>
+              <div class="matrix-cell">3</div>
+            </div>
+          </div>
+          <div class="matrix-sublabel">x = [2, 1, 3]</div>
+        </div>
+      </div>
+
+      <div class="explanation">
+        <p><strong>Key insight:</strong> These features don't have clear human meanings—they're whatever patterns the model found useful during training. The numbers represent "how much" of each feature applies to this token.</p>
+      </div>
+    </div>
+
+    <!-- Stage 2: The Weight Matrix as Learned Lenses -->
+    <div class="stage" id="stage2">
+      <h2><span class="stage-num">2</span> Weight Matrix: Learned Pattern Detectors</h2>
+
+      <p>Now we want to create <strong>2 new features</strong> from those 3 inputs. The weight matrix W contains learned patterns—each row is like a "lens" or "question" the model asks about the input:</p>
+
+      <div class="matrix-container">
+        <div class="matrix-wrapper">
+          <div class="matrix-label">Weight Matrix W</div>
+          <div class="feature-labels">
+            <div class="feature-label">plural-ish</div>
+            <div class="feature-label">past-ish</div>
+            <div class="feature-label">emotion-ish</div>
+          </div>
+          <div class="matrix-with-labels">
+            <div class="matrix" id="weight-w">
+              <div class="matrix-row" data-row="0">
+                <div class="matrix-cell">1</div>
+                <div class="matrix-cell">0</div>
+                <div class="matrix-cell">2</div>
+              </div>
+              <div class="matrix-row" data-row="1">
+                <div class="matrix-cell">-1</div>
+                <div class="matrix-cell">3</div>
+                <div class="matrix-cell">1</div>
+              </div>
+            </div>
+            <div class="row-labels-inline">
+              <div class="row-label-inline">Lens 1: "emotional intensity"</div>
+              <div class="row-label-inline">Lens 2: "narrative mode"</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="concept-cards">
+        <div class="concept-card">
+          <h4>Row 1: [1, 0, 2]</h4>
+          <p>"I care about plural-ish (×1), ignore past-ish (×0), and really care about emotion-ish (×2)"</p>
+          <p><strong>→ Detects: Emotional intensity</strong></p>
+        </div>
+        <div class="concept-card">
+          <h4>Row 2: [-1, 3, 1]</h4>
+          <p>"I penalize plural-ish (×-1), strongly weight past-ish (×3), and slightly care about emotion-ish (×1)"</p>
+          <p><strong>→ Detects: Narrative/storytelling mode</strong></p>
+        </div>
+      </div>
+
+      <div class="analogy-box">
+        <h4>Analogy: Recipes</h4>
+        <p><strong>x</strong> = your ingredients (2 cups flour, 1 egg, 3 cups sugar)</p>
+        <p><strong>Each row of W</strong> = a recipe card that says how much of each ingredient to use</p>
+        <p><strong>y</strong> = the dishes you make using those recipes</p>
+      </div>
+    </div>
+
+    <!-- Stage 3: The Dot Product -->
+    <div class="stage" id="stage3">
+      <h2><span class="stage-num">3</span> The Dot Product: Measuring Alignment</h2>
+
+      <div class="explanation">
+        <p>The <strong>dot product</strong> answers the question: <em>"How aligned is x with this learned pattern?"</em></p>
+        <p>Geometrically, if x and a row of W point in similar directions, the dot product is large. If they're perpendicular, it's zero. If they point opposite ways, it's negative.</p>
+      </div>
+
+      <div class="playground" id="dotProductPlayground">
+        <h3>Interactive Dot Product Calculator</h3>
+        <p>Watch how each element of x combines with each weight to produce a single output number:</p>
+
+        <div class="controls">
+          <button class="btn btn-secondary active" data-row="0">Calculate y₁ (Row 1)</button>
+          <button class="btn btn-secondary" data-row="1">Calculate y₂ (Row 2)</button>
+        </div>
+
+        <div class="matrix-container" id="dotProductViz">
+          <div class="matrix-wrapper">
+            <div class="matrix-label">x (input)</div>
+            <div class="matrix" id="x-display">
+              <div class="matrix-row">
+                <div class="matrix-cell" data-col="0">2</div>
+                <div class="matrix-cell" data-col="1">1</div>
+                <div class="matrix-cell" data-col="2">3</div>
+              </div>
+            </div>
+          </div>
+          <span class="operator">·</span>
+          <div class="matrix-wrapper">
+            <div class="matrix-label">W row <span id="rowLabel">1</span></div>
+            <div class="matrix" id="w-row-display">
+              <div class="matrix-row">
+                <div class="matrix-cell" data-col="0">1</div>
+                <div class="matrix-cell" data-col="1">0</div>
+                <div class="matrix-cell" data-col="2">2</div>
+              </div>
+            </div>
+          </div>
+          <span class="operator">=</span>
+          <div class="matrix-wrapper">
+            <div class="matrix-label">y<span id="outputLabel">₁</span></div>
+            <div class="matrix" id="result-display">
+              <div class="matrix-row">
+                <div class="matrix-cell highlight-result" id="dotResult">8</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dot-product-viz">
+          <div class="dot-product-steps" id="dotSteps">
+            <div class="dot-step" data-step="0">
+              <span class="multiply">2 × 1</span>
+              <span>=</span>
+              <span class="result">2</span>
+            </div>
+            <div class="dot-step" data-step="1">
+              <span class="multiply">1 × 0</span>
+              <span>=</span>
+              <span class="result">0</span>
+            </div>
+            <div class="dot-step" data-step="2">
+              <span class="multiply">3 × 2</span>
+              <span>=</span>
+              <span class="result">6</span>
+            </div>
+            <div class="dot-step" data-step="3">
+              <span class="sum-symbol">Sum:</span>
+              <span>2 + 0 + 6</span>
+              <span>=</span>
+              <span class="result">8</span>
+            </div>
+          </div>
+          <div class="final-result" id="finalResult">
+            y₁ = 8 → High emotional intensity!
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="animateBtn">Animate Step-by-Step</button>
+      </div>
+
+      <div class="explanation success">
+        <p><strong>Every output feature depends on ALL input features.</strong> Meaning emerges from combinations, not from single values "becoming" other values. The weight matrix W defines what counts as a meaningful combination.</p>
+      </div>
+    </div>
+
+    <!-- Stage 4: Dimension Rules -->
+    <div class="stage" id="stage4">
+      <h2><span class="stage-num">4</span> The Dimension Rule: Inner Dimensions Must Match</h2>
+
+      <div class="explanation warning">
+        <p><strong>Critical rule:</strong> When multiplying matrices, the inner dimensions must match. If X is (rows₁ × <span style="color: var(--emerald); font-weight: bold;">cols₁</span>) and W is (<span style="color: var(--emerald); font-weight: bold;">rows₂</span> × cols₂), then cols₁ must equal rows₂.</p>
+      </div>
+
+      <div class="playground">
+        <h3>Dimension Checker</h3>
+        <p>Try different dimensions and see if the multiplication is valid:</p>
+
+        <div class="dimension-display">
+          <div class="dim-box dim-x">
+            X: <input type="number" id="dimX1" value="1" min="1" max="5" style="width: 40px; text-align: center;"> × <input type="number" id="dimX2" value="3" min="1" max="5" style="width: 40px; text-align: center;">
+          </div>
+          <span class="operator">×</span>
+          <div class="dim-box dim-w">
+            W: <input type="number" id="dimW1" value="3" min="1" max="5" style="width: 40px; text-align: center;"> × <input type="number" id="dimW2" value="2" min="1" max="5" style="width: 40px; text-align: center;">
+          </div>
+          <span class="operator">=</span>
+          <div class="dim-box dim-y" id="resultDim">
+            Y: 1 × 2
+          </div>
+        </div>
+
+        <div id="dimFeedback" class="explanation success">
+          <p><strong>✓ Valid!</strong> Inner dimensions match (3 = 3). Result will be 1 × 2.</p>
+        </div>
+      </div>
+
+      <div class="analogy-box">
+        <h4>Why must dimensions match?</h4>
+        <p>Think of it like a zipper: each element in a row of X needs a partner element in a column of W to multiply with. If there are 3 elements in the row but only 2 in the column, some elements have no partner!</p>
+      </div>
+    </div>
+
+    <!-- Stage 5: Multiple Tokens -->
+    <div class="stage" id="stage5">
+      <h2><span class="stage-num">5</span> Multiple Tokens: Batch Processing</h2>
+
+      <p>In practice, LLMs process many tokens at once. Each row of X is a different token:</p>
+
+      <div class="matrix-container">
+        <div class="matrix-wrapper">
+          <div class="matrix-label">X (2 tokens × 3 features)</div>
+          <div class="feature-labels">
+            <div class="feature-label">plural</div>
+            <div class="feature-label">past</div>
+            <div class="feature-label">emotion</div>
+          </div>
+          <div class="matrix" id="multi-x">
+            <div class="matrix-row">
+              <div class="matrix-cell editable"><input type="number" value="2" data-row="0" data-col="0"></div>
+              <div class="matrix-cell editable"><input type="number" value="1" data-row="0" data-col="1"></div>
+              <div class="matrix-cell editable"><input type="number" value="3" data-row="0" data-col="2"></div>
+            </div>
+            <div class="matrix-row">
+              <div class="matrix-cell editable"><input type="number" value="0" data-row="1" data-col="0"></div>
+              <div class="matrix-cell editable"><input type="number" value="2" data-row="1" data-col="1"></div>
+              <div class="matrix-cell editable"><input type="number" value="1" data-row="1" data-col="2"></div>
+            </div>
+          </div>
+          <div class="row-labels" style="position: absolute; left: -80px; top: 45px;">
+            <div class="row-label">token 1 →</div>
+            <div class="row-label">token 2 →</div>
+          </div>
+        </div>
+        <span class="operator">×</span>
+        <div class="matrix-wrapper">
+          <div class="matrix-label">Wᵀ (3 inputs × 2 outputs)</div>
+          <div class="feature-labels">
+            <div class="feature-label">lens 1</div>
+            <div class="feature-label">lens 2</div>
+          </div>
+          <div class="matrix" id="multi-w">
+            <div class="matrix-row">
+              <div class="matrix-cell editable"><input type="number" value="1" data-row="0" data-col="0"></div>
+              <div class="matrix-cell editable"><input type="number" value="-1" data-row="0" data-col="1"></div>
+            </div>
+            <div class="matrix-row">
+              <div class="matrix-cell editable"><input type="number" value="0" data-row="1" data-col="0"></div>
+              <div class="matrix-cell editable"><input type="number" value="3" data-row="1" data-col="1"></div>
+            </div>
+            <div class="matrix-row">
+              <div class="matrix-cell editable"><input type="number" value="2" data-row="2" data-col="0"></div>
+              <div class="matrix-cell editable"><input type="number" value="1" data-row="2" data-col="1"></div>
+            </div>
+          </div>
+        </div>
+        <span class="operator">=</span>
+        <div class="matrix-wrapper">
+          <div class="matrix-label">Y (2 tokens × 2 new features)</div>
+          <div class="feature-labels">
+            <div class="feature-label">output 1</div>
+            <div class="feature-label">output 2</div>
+          </div>
+          <div class="matrix" id="multi-y">
+            <div class="matrix-row">
+              <div class="matrix-cell highlight-result" id="y00">8</div>
+              <div class="matrix-cell highlight-result" id="y01">4</div>
+            </div>
+            <div class="matrix-row">
+              <div class="matrix-cell highlight-result" id="y10">2</div>
+              <div class="matrix-cell highlight-result" id="y11">7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls" style="justify-content: center;">
+        <button class="btn btn-primary" id="calculateMulti">Calculate Y</button>
+        <button class="btn btn-secondary" id="highlightCell" data-row="0" data-col="0">Show y₁₁ calculation</button>
+      </div>
+
+      <div class="dot-product-viz" id="multiCalcViz" style="display: none;">
+        <h4>Calculating <span id="cellLabel">y₁₁</span>:</h4>
+        <div class="dot-product-steps" id="multiDotSteps"></div>
+      </div>
+    </div>
+
+    <!-- Stage 6: Drag and Drop Builder -->
+    <div class="stage" id="stage6">
+      <h2><span class="stage-num">6</span> Build Your Own: Drag & Drop</h2>
+
+      <p>Drag numbers from the bank into the matrices to see how different values affect the output. This helps build intuition for how weight matrices transform inputs.</p>
+
+      <div class="playground">
+        <h3>Number Bank</h3>
+        <p>Drag these numbers into any matrix cell below:</p>
+        <div class="number-bank" id="numberBank">
+          <div class="draggable-number" draggable="true" data-value="-2">-2</div>
+          <div class="draggable-number" draggable="true" data-value="-1">-1</div>
+          <div class="draggable-number" draggable="true" data-value="0">0</div>
+          <div class="draggable-number" draggable="true" data-value="1">1</div>
+          <div class="draggable-number" draggable="true" data-value="2">2</div>
+          <div class="draggable-number" draggable="true" data-value="3">3</div>
+          <div class="draggable-number" draggable="true" data-value="4">4</div>
+          <div class="draggable-number" draggable="true" data-value="5">5</div>
+        </div>
+
+        <div class="matrix-container">
+          <div class="matrix-wrapper">
+            <div class="matrix-label">Input Token x</div>
+            <div class="matrix" id="drag-x">
+              <div class="matrix-row">
+                <div class="matrix-cell drop-target" data-matrix="x" data-row="0" data-col="0">1</div>
+                <div class="matrix-cell drop-target" data-matrix="x" data-row="0" data-col="1">2</div>
+                <div class="matrix-cell drop-target" data-matrix="x" data-row="0" data-col="2">1</div>
+              </div>
+            </div>
+            <div class="matrix-sublabel">Try different input features</div>
+          </div>
+          <span class="operator">×</span>
+          <div class="matrix-wrapper">
+            <div class="matrix-label">Weight Matrix Wᵀ</div>
+            <div class="matrix" id="drag-w">
+              <div class="matrix-row">
+                <div class="matrix-cell drop-target" data-matrix="w" data-row="0" data-col="0">2</div>
+                <div class="matrix-cell drop-target" data-matrix="w" data-row="0" data-col="1">0</div>
+              </div>
+              <div class="matrix-row">
+                <div class="matrix-cell drop-target" data-matrix="w" data-row="1" data-col="0">1</div>
+                <div class="matrix-cell drop-target" data-matrix="w" data-row="1" data-col="1">-1</div>
+              </div>
+              <div class="matrix-row">
+                <div class="matrix-cell drop-target" data-matrix="w" data-row="2" data-col="0">0</div>
+                <div class="matrix-cell drop-target" data-matrix="w" data-row="2" data-col="1">3</div>
+              </div>
+            </div>
+            <div class="matrix-sublabel">Adjust the "lenses"</div>
+          </div>
+          <span class="operator">=</span>
+          <div class="matrix-wrapper">
+            <div class="matrix-label">Output y</div>
+            <div class="matrix" id="drag-y">
+              <div class="matrix-row">
+                <div class="matrix-cell highlight-result" id="drag-y0">4</div>
+                <div class="matrix-cell highlight-result" id="drag-y1">1</div>
+              </div>
+            </div>
+            <div class="matrix-sublabel">Computed automatically</div>
+          </div>
+        </div>
+
+        <div class="dot-product-viz" id="dragCalcViz">
+          <h4>How y is computed:</h4>
+          <div class="dot-product-steps" id="dragDotSteps">
+            <div class="dot-step">
+              <span>y₁ = 1×2 + 2×1 + 1×0 = <span class="result">4</span></span>
+            </div>
+            <div class="dot-step">
+              <span>y₂ = 1×0 + 2×(-1) + 1×3 = <span class="result">1</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn btn-secondary" id="resetDragMatrices">Reset to Default</button>
+          <button class="btn btn-secondary" id="randomizeDragMatrices">Randomize Values</button>
+        </div>
+      </div>
+
+      <div class="explanation success">
+        <p><strong>Experiment ideas:</strong></p>
+        <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
+          <li>Set a weight column to all zeros—what happens to that output?</li>
+          <li>Make all weights positive vs. having negative weights</li>
+          <li>Set the input to [1, 0, 0] to see what the first column of W contributes</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Stage 7: Try It Yourself -->
+    <div class="stage" id="stage7">
+      <h2><span class="stage-num">7</span> Test Your Understanding</h2>
+
+      <div class="quiz-section">
+        <h3>Quiz: Fill in the Result</h3>
+        <p>Given these matrices, calculate the missing values in Y:</p>
+
+        <div class="matrix-container" style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px;">
+          <div class="matrix-wrapper">
+            <div class="matrix-label" style="color: white;">X</div>
+            <div class="matrix" style="background: rgba(255,255,255,0.1);">
+              <div class="matrix-row">
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">1</div>
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">2</div>
+              </div>
+              <div class="matrix-row">
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">3</div>
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">4</div>
+              </div>
+            </div>
+          </div>
+          <span class="operator" style="color: white;">×</span>
+          <div class="matrix-wrapper">
+            <div class="matrix-label" style="color: white;">W</div>
+            <div class="matrix" style="background: rgba(255,255,255,0.1);">
+              <div class="matrix-row">
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">2</div>
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">0</div>
+              </div>
+              <div class="matrix-row">
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">1</div>
+                <div class="matrix-cell" style="background: rgba(255,255,255,0.9);">3</div>
+              </div>
+            </div>
+          </div>
+          <span class="operator" style="color: white;">=</span>
+          <div class="matrix-wrapper">
+            <div class="matrix-label" style="color: white;">Y</div>
+            <div class="matrix" style="background: rgba(255,255,255,0.1);">
+              <div class="matrix-row">
+                <input type="number" class="quiz-input" id="q1" placeholder="?" data-answer="4">
+                <input type="number" class="quiz-input" id="q2" placeholder="?" data-answer="6">
+              </div>
+              <div class="matrix-row">
+                <input type="number" class="quiz-input" id="q3" placeholder="?" data-answer="10">
+                <input type="number" class="quiz-input" id="q4" placeholder="?" data-answer="12">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem;">
+          <button class="btn btn-primary" id="checkQuiz" style="background: white; color: #667eea;">Check Answers</button>
+          <button class="btn btn-secondary" id="showHint" style="border-color: white; color: white;">Show Hint</button>
+        </div>
+
+        <div id="quizFeedback" class="feedback"></div>
+        <div id="quizHint" class="feedback" style="background: rgba(255,255,255,0.2);">
+          <p><strong>Hint:</strong> y₁₁ = (row 1 of X) · (col 1 of W) = 1×2 + 2×1 = ?</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 8: LLM Connection -->
+    <div class="stage" id="stage8">
+      <h2><span class="stage-num">8</span> In Real LLMs</h2>
+
+      <div class="llm-context">
+        <h3>How This Connects to Transformers</h3>
+        <p>In transformer models (GPT, Claude, LLaMA, etc.), matrix multiplication is everywhere:</p>
+
+        <div class="concept-cards" style="margin-top: 1rem;">
+          <div class="concept-card" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white;">
+            <h4 style="color: #81ecec;">Query Matrix (W_Q)</h4>
+            <p style="color: #ddd;">Each row defines one query dimension. Applied to tokens to create "what am I looking for?" vectors.</p>
+          </div>
+          <div class="concept-card" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white;">
+            <h4 style="color: #ffeaa7;">Key Matrix (W_K)</h4>
+            <p style="color: #ddd;">Each row defines one key dimension. Applied to tokens to create "what do I contain?" vectors.</p>
+          </div>
+          <div class="concept-card" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white;">
+            <h4 style="color: #a29bfe;">Value Matrix (W_V)</h4>
+            <p style="color: #ddd;">Each row defines one value dimension. Applied to tokens to create "what information to pass along" vectors.</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px;">
+          <p><strong>The key insight:</strong></p>
+          <p>W is <em>not</em> a lookup table from meanings to meanings. It's a set of <strong>learned lenses</strong>. Each lens looks at the entire input and asks: <em>"Do I see my pattern?"</em></p>
+          <p style="margin-top: 1rem;">Real LLMs use embedding dimensions of 768, 1024, 4096, or even larger—but the principle is identical to our 3→2 example!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Takeaways -->
+    <div class="intro" style="background: linear-gradient(135deg, #d1e7dd 0%, #e8f5e9 100%); border-left: 4px solid var(--emerald);">
+      <h2>Key Takeaways</h2>
+      <ul>
+        <li><strong>Matrix multiplication transforms features:</strong> We're not keeping the original features—we're building new, more useful ones for the next layer.</li>
+        <li><strong>Each row of W is a pattern detector:</strong> It asks "how aligned is the input with this learned direction?"</li>
+        <li><strong>Every output depends on ALL inputs:</strong> Meaning comes from combinations, not single values.</li>
+        <li><strong>Inner dimensions must match:</strong> (m × <strong>n</strong>) × (<strong>n</strong> × p) = (m × p)</li>
+        <li><strong>The dot product measures alignment:</strong> High values mean the input matches the pattern; low/negative means it doesn't.</li>
+      </ul>
+    </div>
+
+  </div>
+
+<footer class="dlab-cta">
+  <div class="cta-content">
+    <div class="cta-section">
+      <h3>Want to go deeper?</h3>
+      <p>Explore how transformers use these operations in our <a href="transformers.html">Transformer Attention Demo</a> and <a href="embeddings.html">Embeddings Demo</a>.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Need help with your research?</h3>
+      <p>D-Lab consultants can help you understand and apply ML concepts. <a href="https://dlab.berkeley.edu/consulting" target="_blank">Request a consultation</a>.</p>
+    </div>
+    <div class="cta-section">
+      <h3>Stay updated</h3>
+      <p>Get notified about new workshops and resources. <a href="https://dlab.berkeley.edu/newsletter" target="_blank">Subscribe to our newsletter</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+.dlab-cta {
+  margin-top: 48px;
+  padding: 32px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+.cta-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+.cta-section h3 {
+  margin: 0 0 8px;
+  font-size: 1.1em;
+  color: var(--text);
+}
+.cta-section p {
+  margin: 0;
+  font-size: 0.95em;
+  color: var(--muted);
+}
+.cta-section a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.cta-section a:hover {
+  text-decoration: underline;
+}
+</style>
+
+  <script>
+    // Data for demonstrations
+    const W = [
+      [1, 0, 2],
+      [-1, 3, 1]
+    ];
+    const x = [2, 1, 3];
+
+    // Stage 3: Dot Product Interactive
+    const dotProductBtns = document.querySelectorAll('#dotProductPlayground .btn-secondary');
+    const xDisplay = document.getElementById('x-display');
+    const wRowDisplay = document.getElementById('w-row-display');
+    const dotResult = document.getElementById('dotResult');
+    const dotSteps = document.getElementById('dotSteps');
+    const finalResult = document.getElementById('finalResult');
+    const rowLabel = document.getElementById('rowLabel');
+    const outputLabel = document.getElementById('outputLabel');
+
+    let currentRow = 0;
+
+    function updateDotProductDisplay(rowIndex) {
+      currentRow = rowIndex;
+      const wRow = W[rowIndex];
+
+      // Update button states
+      dotProductBtns.forEach((btn, i) => {
+        btn.classList.toggle('active', i === rowIndex);
+      });
+
+      // Update W row display
+      const wCells = wRowDisplay.querySelectorAll('.matrix-cell');
+      wRow.forEach((val, i) => {
+        wCells[i].textContent = val;
+      });
+
+      // Update labels
+      rowLabel.textContent = rowIndex + 1;
+      outputLabel.textContent = rowIndex === 0 ? '₁' : '₂';
+
+      // Calculate dot product
+      const products = x.map((xi, i) => xi * wRow[i]);
+      const sum = products.reduce((a, b) => a + b, 0);
+
+      // Update steps
+      dotSteps.innerHTML = '';
+      x.forEach((xi, i) => {
+        const step = document.createElement('div');
+        step.className = 'dot-step';
+        step.dataset.step = i;
+        step.innerHTML = `
+          <span class="multiply">${xi} × ${wRow[i]}</span>
+          <span>=</span>
+          <span class="result">${products[i]}</span>
+        `;
+        dotSteps.appendChild(step);
+      });
+
+      // Sum step
+      const sumStep = document.createElement('div');
+      sumStep.className = 'dot-step';
+      sumStep.dataset.step = '3';
+      sumStep.innerHTML = `
+        <span class="sum-symbol">Sum:</span>
+        <span>${products.join(' + ')}</span>
+        <span>=</span>
+        <span class="result">${sum}</span>
+      `;
+      dotSteps.appendChild(sumStep);
+
+      // Update result
+      dotResult.textContent = sum;
+
+      // Update final result message
+      const messages = [
+        `y₁ = ${sum} → ${sum > 5 ? 'High' : sum > 0 ? 'Medium' : 'Low'} emotional intensity!`,
+        `y₂ = ${sum} → ${sum > 5 ? 'Strong' : sum > 0 ? 'Some' : 'Little'} narrative mode!`
+      ];
+      finalResult.textContent = messages[rowIndex];
+    }
+
+    dotProductBtns.forEach((btn, i) => {
+      btn.addEventListener('click', () => updateDotProductDisplay(i));
+    });
+
+    // Animate step by step
+    const animateBtn = document.getElementById('animateBtn');
+    animateBtn.addEventListener('click', async () => {
+      animateBtn.disabled = true;
+      const steps = dotSteps.querySelectorAll('.dot-step');
+      const xCells = xDisplay.querySelectorAll('.matrix-cell');
+      const wCells = wRowDisplay.querySelectorAll('.matrix-cell');
+
+      // Reset all highlights
+      steps.forEach(s => s.classList.remove('active'));
+      xCells.forEach(c => c.classList.remove('highlight-row'));
+      wCells.forEach(c => c.classList.remove('highlight-col'));
+      dotResult.classList.remove('step-highlight');
+
+      for (let i = 0; i < steps.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        if (i < 3) {
+          // Highlight corresponding cells
+          xCells[i].classList.add('highlight-row');
+          wCells[i].classList.add('highlight-col');
+        }
+
+        steps[i].classList.add('active');
+
+        if (i === steps.length - 1) {
+          dotResult.classList.add('step-highlight');
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Reset
+      xCells.forEach(c => c.classList.remove('highlight-row'));
+      wCells.forEach(c => c.classList.remove('highlight-col'));
+      steps.forEach(s => s.classList.remove('active'));
+      animateBtn.disabled = false;
+    });
+
+    // Stage 4: Dimension Checker
+    const dimInputs = ['dimX1', 'dimX2', 'dimW1', 'dimW2'].map(id => document.getElementById(id));
+    const resultDim = document.getElementById('resultDim');
+    const dimFeedback = document.getElementById('dimFeedback');
+
+    function checkDimensions() {
+      const [x1, x2, w1, w2] = dimInputs.map(input => parseInt(input.value) || 1);
+
+      if (x2 === w1) {
+        resultDim.textContent = `Y: ${x1} × ${w2}`;
+        resultDim.style.opacity = '1';
+        dimFeedback.className = 'explanation success';
+        dimFeedback.innerHTML = `<p><strong>✓ Valid!</strong> Inner dimensions match (${x2} = ${w1}). Result will be ${x1} × ${w2}.</p>`;
+      } else {
+        resultDim.textContent = `Y: ???`;
+        resultDim.style.opacity = '0.5';
+        dimFeedback.className = 'explanation warning';
+        dimFeedback.innerHTML = `<p><strong>✗ Invalid!</strong> Inner dimensions don't match (${x2} ≠ ${w1}). X has ${x2} columns but W has ${w1} rows.</p>`;
+      }
+    }
+
+    dimInputs.forEach(input => input.addEventListener('input', checkDimensions));
+
+    // Stage 5: Multiple Tokens Calculator
+    function getMatrixValues(matrixId) {
+      const matrix = document.getElementById(matrixId);
+      const rows = matrix.querySelectorAll('.matrix-row');
+      return Array.from(rows).map(row => {
+        const cells = row.querySelectorAll('input');
+        return Array.from(cells).map(input => parseFloat(input.value) || 0);
+      });
+    }
+
+    function matrixMultiply(A, B) {
+      const rowsA = A.length;
+      const colsA = A[0].length;
+      const colsB = B[0].length;
+
+      const result = [];
+      for (let i = 0; i < rowsA; i++) {
+        result[i] = [];
+        for (let j = 0; j < colsB; j++) {
+          let sum = 0;
+          for (let k = 0; k < colsA; k++) {
+            sum += A[i][k] * B[k][j];
+          }
+          result[i][j] = sum;
+        }
+      }
+      return result;
+    }
+
+    const calculateMultiBtn = document.getElementById('calculateMulti');
+    calculateMultiBtn.addEventListener('click', () => {
+      const X = getMatrixValues('multi-x');
+      const WT = getMatrixValues('multi-w');
+      const Y = matrixMultiply(X, WT);
+
+      document.getElementById('y00').textContent = Y[0][0];
+      document.getElementById('y01').textContent = Y[0][1];
+      document.getElementById('y10').textContent = Y[1][0];
+      document.getElementById('y11').textContent = Y[1][1];
+
+      // Pulse animation
+      ['y00', 'y01', 'y10', 'y11'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('step-highlight');
+        setTimeout(() => el.classList.remove('step-highlight'), 500);
+      });
+    });
+
+    // Highlight specific cell calculation
+    const highlightCellBtn = document.getElementById('highlightCell');
+    const multiCalcViz = document.getElementById('multiCalcViz');
+    const cellLabel = document.getElementById('cellLabel');
+    const multiDotSteps = document.getElementById('multiDotSteps');
+
+    let currentCellRow = 0;
+    let currentCellCol = 0;
+
+    highlightCellBtn.addEventListener('click', () => {
+      // Cycle through cells
+      currentCellCol++;
+      if (currentCellCol > 1) {
+        currentCellCol = 0;
+        currentCellRow++;
+        if (currentCellRow > 1) currentCellRow = 0;
+      }
+
+      const X = getMatrixValues('multi-x');
+      const WT = getMatrixValues('multi-w');
+
+      highlightCellBtn.textContent = `Show y${currentCellRow + 1}${currentCellCol + 1} calculation`;
+      highlightCellBtn.dataset.row = currentCellRow;
+      highlightCellBtn.dataset.col = currentCellCol;
+
+      cellLabel.textContent = `y${currentCellRow + 1}${currentCellCol + 1}`;
+
+      // Show calculation
+      const xRow = X[currentCellRow];
+      const wCol = WT.map(row => row[currentCellCol]);
+
+      multiDotSteps.innerHTML = '';
+      let products = [];
+      xRow.forEach((xi, i) => {
+        const product = xi * wCol[i];
+        products.push(product);
+        const step = document.createElement('div');
+        step.className = 'dot-step';
+        step.innerHTML = `
+          <span class="multiply">${xi} × ${wCol[i]}</span>
+          <span>=</span>
+          <span class="result">${product}</span>
+        `;
+        multiDotSteps.appendChild(step);
+      });
+
+      const sum = products.reduce((a, b) => a + b, 0);
+      const sumStep = document.createElement('div');
+      sumStep.className = 'dot-step';
+      sumStep.innerHTML = `
+        <span class="sum-symbol">Sum:</span>
+        <span>${products.join(' + ')}</span>
+        <span>=</span>
+        <span class="result">${sum}</span>
+      `;
+      multiDotSteps.appendChild(sumStep);
+
+      multiCalcViz.style.display = 'block';
+
+      // Highlight the cells involved
+      const xCells = document.querySelectorAll('#multi-x .matrix-row')[currentCellRow].querySelectorAll('.matrix-cell');
+      const wCells = document.querySelectorAll('#multi-w .matrix-row');
+
+      // Reset all highlights
+      document.querySelectorAll('#multi-x .matrix-cell, #multi-w .matrix-cell').forEach(c => {
+        c.classList.remove('highlight-row', 'highlight-col');
+      });
+
+      xCells.forEach(c => c.classList.add('highlight-row'));
+      wCells.forEach(row => {
+        row.querySelectorAll('.matrix-cell')[currentCellCol].classList.add('highlight-col');
+      });
+
+      // Highlight result
+      const resultId = `y${currentCellRow}${currentCellCol}`;
+      document.querySelectorAll('#multi-y .matrix-cell').forEach(c => c.classList.remove('highlight-product'));
+      document.getElementById(resultId).classList.add('highlight-product');
+    });
+
+    // Auto-recalculate when inputs change
+    document.querySelectorAll('#multi-x input, #multi-w input').forEach(input => {
+      input.addEventListener('input', () => {
+        calculateMultiBtn.click();
+      });
+    });
+
+    // Stage 6: Quiz
+    const checkQuizBtn = document.getElementById('checkQuiz');
+    const showHintBtn = document.getElementById('showHint');
+    const quizFeedback = document.getElementById('quizFeedback');
+    const quizHint = document.getElementById('quizHint');
+
+    checkQuizBtn.addEventListener('click', () => {
+      const answers = [
+        { id: 'q1', correct: 4 },   // 1*2 + 2*1 = 4
+        { id: 'q2', correct: 6 },   // 1*0 + 2*3 = 6
+        { id: 'q3', correct: 10 },  // 3*2 + 4*1 = 10
+        { id: 'q4', correct: 12 }   // 3*0 + 4*3 = 12
+      ];
+
+      let allCorrect = true;
+      answers.forEach(({ id, correct }) => {
+        const input = document.getElementById(id);
+        const value = parseInt(input.value);
+
+        if (value === correct) {
+          input.classList.remove('incorrect');
+          input.classList.add('correct');
+        } else {
+          input.classList.remove('correct');
+          input.classList.add('incorrect');
+          allCorrect = false;
+        }
+      });
+
+      quizFeedback.classList.add('show');
+      if (allCorrect) {
+        quizFeedback.className = 'feedback show success';
+        quizFeedback.innerHTML = '<p><strong>All correct!</strong> You understand matrix multiplication!</p>';
+      } else {
+        quizFeedback.className = 'feedback show error';
+        quizFeedback.innerHTML = '<p>Some answers are incorrect. Remember: multiply each element pair and sum them up!</p>';
+      }
+    });
+
+    showHintBtn.addEventListener('click', () => {
+      quizHint.classList.toggle('show');
+      showHintBtn.textContent = quizHint.classList.contains('show') ? 'Hide Hint' : 'Show Hint';
+    });
+
+    // Stage 6: Drag and Drop Builder
+    const dragX = { values: [1, 2, 1] };
+    const dragW = { values: [[2, 0], [1, -1], [0, 3]] };
+
+    function updateDragResult() {
+      // Calculate y = x * W^T
+      const x = dragX.values;
+      const w = dragW.values;
+
+      const y0 = x[0] * w[0][0] + x[1] * w[1][0] + x[2] * w[2][0];
+      const y1 = x[0] * w[0][1] + x[1] * w[1][1] + x[2] * w[2][1];
+
+      document.getElementById('drag-y0').textContent = y0;
+      document.getElementById('drag-y1').textContent = y1;
+
+      // Update calculation display
+      const dragDotSteps = document.getElementById('dragDotSteps');
+      dragDotSteps.innerHTML = `
+        <div class="dot-step">
+          <span>y₁ = ${x[0]}×${w[0][0]} + ${x[1]}×${w[1][0]} + ${x[2]}×${w[2][0]} = <span class="result">${y0}</span></span>
+        </div>
+        <div class="dot-step">
+          <span>y₂ = ${x[0]}×${w[0][1]} + ${x[1]}×${w[1][1]} + ${x[2]}×${w[2][1]} = <span class="result">${y1}</span></span>
+        </div>
+      `;
+
+      // Pulse animation on result
+      ['drag-y0', 'drag-y1'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('step-highlight');
+        setTimeout(() => el.classList.remove('step-highlight'), 500);
+      });
+    }
+
+    function updateDragMatrixDisplay() {
+      // Update X display
+      const xCells = document.querySelectorAll('#drag-x .matrix-cell');
+      dragX.values.forEach((val, i) => {
+        xCells[i].textContent = val;
+      });
+
+      // Update W display
+      const wRows = document.querySelectorAll('#drag-w .matrix-row');
+      dragW.values.forEach((row, i) => {
+        const cells = wRows[i].querySelectorAll('.matrix-cell');
+        row.forEach((val, j) => {
+          cells[j].textContent = val;
+        });
+      });
+
+      updateDragResult();
+    }
+
+    // Drag and drop handlers
+    let draggedValue = null;
+
+    document.querySelectorAll('.draggable-number').forEach(num => {
+      num.addEventListener('dragstart', (e) => {
+        draggedValue = parseInt(e.target.dataset.value);
+        e.target.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+
+      num.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging');
+        draggedValue = null;
+      });
+    });
+
+    document.querySelectorAll('.drop-target').forEach(cell => {
+      cell.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        cell.classList.add('drop-hover');
+      });
+
+      cell.addEventListener('dragleave', () => {
+        cell.classList.remove('drop-hover');
+      });
+
+      cell.addEventListener('drop', (e) => {
+        e.preventDefault();
+        cell.classList.remove('drop-hover');
+
+        if (draggedValue !== null) {
+          const matrix = cell.dataset.matrix;
+          const row = parseInt(cell.dataset.row);
+          const col = parseInt(cell.dataset.col);
+
+          if (matrix === 'x') {
+            dragX.values[col] = draggedValue;
+          } else if (matrix === 'w') {
+            dragW.values[row][col] = draggedValue;
+          }
+
+          updateDragMatrixDisplay();
+        }
+      });
+
+      // Also allow clicking to type
+      cell.addEventListener('click', () => {
+        const currentValue = cell.textContent;
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.value = currentValue;
+        input.style.cssText = 'width: 100%; height: 100%; border: none; background: transparent; text-align: center; font-weight: 600; font-size: 1.1rem;';
+
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+        input.select();
+
+        const finishEdit = () => {
+          const newValue = parseInt(input.value) || 0;
+          const matrix = cell.dataset.matrix;
+          const row = parseInt(cell.dataset.row);
+          const col = parseInt(cell.dataset.col);
+
+          if (matrix === 'x') {
+            dragX.values[col] = newValue;
+          } else if (matrix === 'w') {
+            dragW.values[row][col] = newValue;
+          }
+
+          updateDragMatrixDisplay();
+        };
+
+        input.addEventListener('blur', finishEdit);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            input.blur();
+          }
+        });
+      });
+    });
+
+    // Reset and randomize buttons
+    document.getElementById('resetDragMatrices').addEventListener('click', () => {
+      dragX.values = [1, 2, 1];
+      dragW.values = [[2, 0], [1, -1], [0, 3]];
+      updateDragMatrixDisplay();
+    });
+
+    document.getElementById('randomizeDragMatrices').addEventListener('click', () => {
+      dragX.values = dragX.values.map(() => Math.floor(Math.random() * 7) - 2);
+      dragW.values = dragW.values.map(row => row.map(() => Math.floor(Math.random() * 7) - 2));
+      updateDragMatrixDisplay();
+    });
+
+    // Initialize
+    updateDotProductDisplay(0);
+    checkDimensions();
+    calculateMultiBtn.click();
+    updateDragMatrixDisplay();
+  </script>
+</body>
+</html>
